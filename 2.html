@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillForage - Revolutionizing Learning</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            z-index: 1;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: #000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .course-card {
+            flex: 0 0 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            scroll-snap-align: start;
+            transition: all 0.3s ease;
+        }
+
+        .course-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress {
+            width: 75%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            animation: progressAnimation 2s ease-in-out infinite;
+        }
+
+        @keyframes progressAnimation {
+            0% { width: 0%; }
+            100% { width: 75%; }
+        }
+
+        .testimonial-container {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .testimonial {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        #floating-menu {
+            position: fixed;
+            top: 50%;
+            right: 2rem;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        .menu-item {
+            width: 15px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item.active, .menu-item:hover {
+            background: #00ffff;
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        #loading-screen {
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 2s cubic-bezier(0.86, 0, 0.07, 1);
+        }
+
+        #loading-text {
+            color: #00ffff;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+        }
+
+        .content-wrapper {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+
+            .feature-grid, .testimonial-container {
+                grid-template-columns: 1fr;
+            }
+
+            #floating-menu {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div id="loading-text">SkillForage</div>
+    </div>
+    <div class="content-wrapper">
+    <div id="canvas-container"></div>
+
+    <nav id="floating-menu">
+        <div class="menu-item active" data-section="hero"></div>
+        <div class="menu-item" data-section="features"></div>
+        <div class="menu-item" data-section="courses"></div>
+        <div class="menu-item" data-section="testimonials"></div>
+        <div class="menu-item" data-section="cta"></div>
+    </nav>
+
+    <section id="hero" class="section">
+        <div class="content">
+            <h1>SkillForage</h1>
+            <p>Embark on a revolutionary learning journey. Upskill, gamify, and transform your career in ways you never imagined possible.</p>
+            <a href="#features" class="btn">Discover Your Potential</a>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <div class="content">
+            <h2>Unleash Your Learning Superpowers</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🧠</div>
+                    <h3>AI-Powered Custom Courses</h3>
+                    <p>Our cutting-edge AI analyzes your goals, learning style, and industry trends to craft the perfect learning path just for you.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Gamified Learning Experience</h3>
+                    <p>Level up your skills while having fun! Earn points, unlock achievements, and compete with peers in our immersive learning ecosystem.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔗</div>
+                    <h3>Blockchain-Verified Certificates</h3>
+                    <p>Showcase your achievements with tamper-proof certificates stored on the blockchain, ensuring credibility and global recognition.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🚀</div>
+                    <h3>AI-Powered Career Launchpad</h3>
+                    <p>Let our AI match you with your dream job! Get personalized career advice and connect with top companies actively seeking your unique skill set.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="courses" class="section">
+        <div class="content">
+            <h2>Trending Courses</h2>
+            <div class="course-slider">
+                <div class="course-card">
+                    <h3>Quantum Computing Fundamentals</h3>
+                    <p>Dive into the mind-bending world of quantum mechanics and its revolutionary applications in computing.</p>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+                <div class="course-card">
+                    <h3>AI Ethics & Governance</h3>
+                    <p>Explore the ethical implications of AI and learn to develop responsible AI systems for a better future.</p>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+                <div class="course-card">
+                    <h3>Blockchain Architecture</h3>
+                    <p>Master the intricacies of blockchain technology and build secure, decentralized applications.</p>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+                <div class="course-card">
+                    <h3>Neurotech Innovation</h3>
+                    <p>Discover the cutting-edge field of neurotechnology and its potential to transform healthcare and human-computer interaction.</p>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonials" class="section">
+        <div class="content">
+            <h2>Success Stories</h2>
+            <div class="testimonial-container">
+                <div class="testimonial">
+                    <p>"SkillForage's AI-curated courses and gamified learning approach helped me transition from a junior developer to a blockchain architect in just 6 months. The job-matching feature landed me my dream job at a cutting-edge tech company!"</p>
+                    <p><strong>- Alex Chen, Blockchain Architect</strong></p>
+                </div>
+                <div class="testimonial">
+                    <p>"As a busy professional, I struggled to find time for upskilling. SkillForage's personalized learning paths and bite-sized modules made it possible for me to learn at my own pace. The blockchain certificates gave me a competitive edge in the job market!"</p>
+                    <p><strong>- Samantha Wong, Data Science Lead</strong></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cta" class="section">
+        <div class="content">
+            <h2>Ready to Revolutionize Your Learning?</h2>
+            <p>Join SkillForage today and unlock a world of possibilities. Your future self will thank you.</p>
+            <a href="#" class="btn">Start Your Journey Now</a>
+        </div>
+    </section>
+    </div>
+    <script>
+        // Three.js background animation
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const geometry = new THREE.IcosahedronGeometry(1, 1);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.3
+        });
+        const icosahedron = new THREE.Mesh(geometry, material);
+        scene.add(icosahedron);
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.005,
+            color: 0x00ffff
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 3;
+
+        window.addEventListener('load', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingText = document.getElementById('loading-text');
+            const contentWrapper = document.querySelector('.content-wrapper');
+
+            // Show loading text
+            setTimeout(() => {
+                loadingText.style.opacity = '1';
+                loadingText.style.transform = 'scale(1)';
+            }, 500);
+
+            // Start zoom-out effect
+            setTimeout(() => {
+                loadingScreen.style.transform = 'scale(10)';
+                loadingText.style.opacity = '0';
+                loadingText.style.transform = 'scale(0.1)';
+
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    contentWrapper.style.opacity = '1';
+                    document.body.style.overflow = 'auto'; // Re-enable scrolling
+                    
+                    // Start animations and effects after the loading screen zooms out
+                    startAnimations();
+                }, 2000); // Match this duration with the CSS transition time
+            }, 2500);
+        });
+
+        function startAnimations() {
+            // Trigger the typewriter effect
+            typeWriter();
+
+            // Animate sections using GSAP
+            gsap.from('.section', {
+                opacity: 0,
+                y: 50,
+                stagger: 0.3,
+                duration: 1,
+                ease: 'power3.out'
+            });
+
+            // Start particle animation
+            animateParticles();
+
+            // Start Three.js animation
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            icosahedron.rotation.x += 0.001;
+            icosahedron.rotation.y += 0.001;
+            particlesMesh.rotation.y += 0.0005;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Smooth scrolling and menu highlighting
+        const menuItems = document.querySelectorAll('.menu-item');
+        const sections = document.querySelectorAll('.section');
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetId = item.getAttribute('data-section');
+                const targetSection = document.getElementById(targetId);
+                window.scrollTo({
+                    top: targetSection.offsetTop,
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - sectionHeight / 3) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-section') === current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // GSAP animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.from('.feature-item', {
+            scrollTrigger: {
+                trigger: '#features',
+                start: 'top center'
+            },
+        opacity: 0,
+        y: 50,
+        stagger: 0.2,
+        duration: 1,
+        ease: 'power3.out'
+    });
+
+    gsap.from('.course-card', {
+        scrollTrigger: {
+            trigger: '#courses',
+            start: 'top center'
+        },
+        opacity: 0,
+        x: 100,
+        stagger: 0.2,
+        duration: 1,
+        ease: 'power3.out'
+    });
+
+    gsap.from('.testimonial', {
+        scrollTrigger: {
+            trigger: '#testimonials',
+            start: 'top center'
+        },
+        opacity: 0,
+        scale: 0.8,
+        stagger: 0.2,
+        duration: 1,
+        ease: 'power3.out'
+    });
+
+    // Particle system
+    const particleCount = 100;
+    const particles = [];
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * window.innerWidth;
+            this.y = Math.random() * window.innerHeight;
+            this.size = Math.random() * 5 + 1;
+            this.speedX = Math.random() * 3 - 1.5;
+            this.speedY = Math.random() * 3 - 1.5;
+        }
+
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+
+            if (this.x > window.innerWidth) this.x = 0;
+            else if (this.x < 0) this.x = window.innerWidth;
+
+            if (this.y > window.innerHeight) this.y = 0;
+            else if (this.y < 0) this.y = window.innerHeight;
+        }
+
+        draw(ctx) {
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '-1';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const particle of particles) {
+            particle.update();
+            particle.draw(ctx);
+        }
+
+        requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+
+    // Interactive cursor effect
+    const cursor = document.createElement('div');
+    cursor.style.position = 'fixed';
+    cursor.style.width = '20px';
+    cursor.style.height = '20px';
+    cursor.style.borderRadius = '50%';
+    cursor.style.border = '2px solid #00ffff';
+    cursor.style.pointerEvents = 'none';
+    cursor.style.zIndex = '9999';
+    cursor.style.transition = 'transform 0.1s ease';
+    document.body.appendChild(cursor);
+
+    document.addEventListener('mousemove', (e) => {
+        cursor.style.left = `${e.clientX}px`;
+        cursor.style.top = `${e.clientY}px`;
+    });
+
+    document.querySelectorAll('a, button, .feature-item, .course-card').forEach(elem => {
+        elem.addEventListener('mouseenter', () => {
+            cursor.style.transform = 'scale(1.5)';
+        });
+        elem.addEventListener('mouseleave', () => {
+            cursor.style.transform = 'scale(1)';
+        });
+    });
+
+    // Typewriter effect for the hero title
+    const heroTitle = document.querySelector('#hero h1');
+    const heroTitleText = heroTitle.textContent;
+    heroTitle.textContent = '';
+    let i = 0;
+
+    function typeWriter() {
+        if (i < heroTitleText.length) {
+            heroTitle.textContent += heroTitleText.charAt(i);
+            i++;
+            setTimeout(typeWriter, 100);
+        }
+    }
+
+    // Start the typewriter effect when the page loads
+    window.addEventListener('load', typeWriter);
+</script>
+</body>
+</html>
