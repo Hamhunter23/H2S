@@ -103,13 +103,18 @@
             padding: 20px;
             margin: 20px;
             width: 300px;
-            opacity: 0;
-            transform: translateY(50px);
+            opacity: 1; /* Change from 0 to 1 */
+            transform: translateY(0); /* Reset any transform */
         }
 
         .feature-box h3 {
             font-size: 1.5vw;
             margin-bottom: 10px;
+        }
+
+        .feature-box p {
+            font-size: 1vw;
+            opacity: 1; /* Ensure paragraph is visible */
         }
 
         .feature-container {
@@ -141,21 +146,56 @@
             font-size: 1.5vw;
         }
 
+        #testimonials .section-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
         .testimonial {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 20px;
-            margin: 20px;
-            max-width: 600px;
-            opacity: 0;
-            transform: translateX(-50px);
+            opacity: 1;
+            transform: translateX(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .testimonial:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .testimonial p {
+            font-size: 1vw;
+            margin-bottom: 10px;
+            opacity: 1;
         }
 
         .testimonial-author {
             font-style: italic;
             text-align: right;
-            margin-top: 10px;
+            font-size: 0.8vw;
         }
+
+        /* Scattered layout */
+        .testimonial:nth-child(3n+1) { grid-column: 1 / span 2; }
+        .testimonial:nth-child(3n+2) { grid-column: 2 / span 2; }
+        .testimonial:nth-child(3n) { grid-column: 1 / span 1; }
+        .testimonial:nth-child(4n) { grid-column: 3 / span 1; }
+
+        @media (max-width: 768px) {
+            #testimonials .section-content {
+                grid-template-columns: 1fr;
+            }
+            .testimonial:nth-child(n) {
+                grid-column: 1;
+            }
+        }
+
 
         @media (max-width: 768px) {
             h1, h2 { font-size: 8vw; }
@@ -183,6 +223,11 @@
             transform: scale(2) translate(-25%, -25%) !important;
             background-color: rgba(255, 255, 255, 0.2);
         }
+
+        #subtitle {
+            opacity: 0;
+            transform: translateY(20px);
+        }
     </style>
 </head>
 <body>
@@ -199,7 +244,7 @@
 
     <section id="home" class="section">
         <h1>SkillForge</h1>
-        <p>Revolutionizing learning through AI-driven personalization and blockchain certification</p>
+        <p id="subtitle">Revolutionizing learning through AI-driven personalization and blockchain certification</p>
         <button class="cta-button">Embark on Your Journey</button>
     </section>
 
@@ -213,22 +258,37 @@
         <div class="feature-container">
             <div class="feature-box">
                 <h3>AI-Driven Personalization</h3>
-                <p>Our AI adapts course content and pacing to your unique learning style and goals.</p>
+                <p>Our AI adapts course content and pacing to your unique learning style and goals. 
+                   By analyzing your progress and preferences, it tailors the material to ensure 
+                   you get the most effective and engaging learning experience possible, helping you 
+                   to master new skills faster and with greater retention.</p>
             </div>
             <div class="feature-box">
                 <h3>Gamified Learning</h3>
-                <p>Earn points, badges, and level up as you acquire new skills and knowledge.</p>
+                <p>Earn points, badges, and level up as you acquire new skills and knowledge. 
+                   Our gamified approach makes learning fun and motivating, encouraging you to 
+                   continuously challenge yourself and achieve higher levels of expertise. 
+                   Each milestone you reach will be a testament to your hard work and dedication.</p>
             </div>
             <div class="feature-box">
                 <h3>Blockchain Certificates</h3>
-                <p>Secure, verifiable proof of your achievements that you can share with employers.</p>
+                <p>Secure, verifiable proof of your achievements that you can share with employers. 
+                   Our blockchain technology ensures that your certificates are tamper-proof and 
+                   easily verifiable by potential employers, giving them confidence in your skills 
+                   and qualifications. This modern approach to certification helps you stand out 
+                   in a competitive job market.</p>
             </div>
             <div class="feature-box">
                 <h3>Real-time Industry Alignment</h3>
-                <p>Course content updated in real-time to match industry trends and demands.</p>
+                <p>Course content updated in real-time to match industry trends and demands. 
+                   Stay ahead of the curve with our dynamic curriculum that evolves with the 
+                   latest developments in your field. Our courses are designed to equip you 
+                   with the knowledge and skills that are most relevant and sought-after by 
+                   employers, ensuring that you remain competitive and job-ready.</p>
             </div>
         </div>
     </section>
+    
 
     <section id="stats" class="section">
         <h2>SkillForge Impact</h2>
@@ -250,13 +310,31 @@
 
     <section id="testimonials" class="section">
         <h2>Success Stories</h2>
-        <div class="testimonial">
-            <p>"SkillForge transformed my career. The AI-driven approach helped me learn faster than I ever thought possible."</p>
-            <p class="testimonial-author">- Sarah J., Software Developer</p>
-        </div>
-        <div class="testimonial">
-            <p>"The gamification aspect made learning addictive. I found myself excited to tackle new modules every day!"</p>
-            <p class="testimonial-author">- Michael T., Data Scientist</p>
+        <div class="section-content">
+            <div class="testimonial">
+                <p>"SkillForge transformed my career. The AI-driven approach helped me learn faster than I ever thought possible."</p>
+                <p class="testimonial-author">- Sarah J., Software Developer</p>
+            </div>
+            <div class="testimonial">
+                <p>"The gamification aspect made learning addictive. I found myself excited to tackle new modules every day!"</p>
+                <p class="testimonial-author">- Michael T., Data Scientist</p>
+            </div>
+            <div class="testimonial">
+                <p>"Blockchain certificates gave me a competitive edge in job interviews. Employers were impressed by the verifiable proof of my skills."</p>
+                <p class="testimonial-author">- Emily R., Blockchain Specialist</p>
+            </div>
+            <div class="testimonial">
+                <p>"The real-time industry alignment feature ensured I was always learning the most relevant and up-to-date skills."</p>
+                <p class="testimonial-author">- David L., UX Designer</p>
+            </div>
+            <div class="testimonial">
+                <p>"SkillForge's personalized learning paths helped me transition into a new field effortlessly. It's like having a personal career coach!"</p>
+                <p class="testimonial-author">- Anna K., Career Changer</p>
+            </div>
+            <div class="testimonial">
+                <p>"The interactive projects and real-world simulations prepared me for my dream job better than any traditional course could have."</p>
+                <p class="testimonial-author">- Robert M., Project Manager</p>
+            </div>
         </div>
     </section>
 
@@ -337,16 +415,16 @@
             y: -50 
         });
 
-        gsap.to('.feature-box', { 
+        gsap.from('.feature-box', { 
             scrollTrigger: {
                 trigger: '#features',
                 start: 'top center',
                 end: 'bottom center',
                 toggleActions: 'play none none reverse'
             },
-            opacity: 1, 
+            opacity: 0, 
+            y: 50,
             duration: 1,
-            y: 0,
             stagger: 0.2
         });
 
@@ -362,19 +440,20 @@
             stagger: 0.2
         });
 
-        gsap.to('.testimonial', { 
+        gsap.from('.testimonial', { 
             scrollTrigger: {
                 trigger: '#testimonials',
                 start: 'top center',
                 end: 'bottom center',
                 toggleActions: 'play none none reverse'
             },
-            opacity: 1, 
+            opacity: 0, 
+            y: () => Math.random() * 100 - 50, // Random vertical offset
+            x: () => Math.random() * 100 - 50, // Random horizontal offset
+            rotation: () => Math.random() * 10 - 5, // Slight random rotation
             duration: 1,
-            x: 0,
-            stagger: 0.3
+            stagger: 0.2
         });
-
         // Animated counting for stats
         function animateValue(id, start, end, duration) {
             let startTimestamp = null;
@@ -478,8 +557,8 @@
         const mouse = new THREE.Vector2();
 
         window.addEventListener('mousemove', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            mouse.x = (event.clientX / window.innerWidth) * 10 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 10 + 1;
 
             raycaster.setFromCamera(mouse, camera);
 
@@ -543,15 +622,7 @@
             section.insertBefore(bg, section.firstChild);
         });
 
-        // Add a subtle floating animation to testimonials
-        gsap.to('.testimonial', {
-            y: 20,
-            duration: 2,
-            repeat: -1,
-            yoyo: true,
-            ease: "power1.inOut",
-            stagger: 0.5
-        });
+       
 
         // Create a typed effect for the main title
         const titles = ["SkillForge", "Learn", "Grow", "Succeed"];
@@ -571,9 +642,43 @@
 
         function cycleTitles() {
             const titleElement = document.querySelector('#home h1');
-            typeTitle(titles[currentTitleIndex], titleElement, () => {
-                currentTitleIndex = (currentTitleIndex + 1) % titles.length;
-                cycleTitles();
+            const subtitleElement = document.getElementById('subtitle');
+            
+            // Animate subtitle only once
+            gsap.to(subtitleElement, {
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                delay: 0.5
+            });
+
+            function animateTitle() {
+                gsap.to(titleElement, {
+                    opacity: 0,
+                    y: -20,
+                    duration: 0.5,
+                    onComplete: () => {
+                        currentTitleIndex = (currentTitleIndex + 1) % titles.length;
+                        titleElement.textContent = titles[currentTitleIndex];
+                        gsap.to(titleElement, {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.5,
+                            onComplete: () => {
+                                setTimeout(animateTitle, 2000);
+                            }
+                        });
+                    }
+                });
+            }
+
+            titleElement.textContent = titles[currentTitleIndex];
+            gsap.to(titleElement, {
+                opacity: 1,
+                duration: 0.5,
+                onComplete: () => {
+                    setTimeout(animateTitle, 2000);
+                }
             });
         }
 
