@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true, // Skipping lib checks to avoid missing type definition errors
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -19,8 +19,20 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types" // Ensure custom types are included if you have any
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","types/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "types/**/*" // Ensure custom type definitions are included
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
