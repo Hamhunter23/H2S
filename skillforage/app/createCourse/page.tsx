@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from 'react';
 import { createReadStream } from 'fs';
 import csv from 'csv-parser';
