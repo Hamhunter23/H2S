@@ -1,115 +1,131 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Modal from './components/Modal'
 import Module from './components/ModuleBox';
 import Content from './components/ContentBox';
+import ChooseModule from './components/ChooseModule';
+import OptionsModal from "./components/OptionsModal";
 import './journey_style.css';
 
 
 const modules = [
     {
         moduleName: "Module1",
-        multiple: true,
         details: "This is Module1",
         content: ["Content1", "Content2", "Content3", "Content4"],
-        column: 1,
-        row: -1,
+        nextModule: "Module2",
+        options: ["Option1", "Option2", "Option3", "Option4"],
     },
     {
-        moduleName: "Module2.1",
-        multiple: true,
+        moduleName: "Module2",
         details: "This is Module2.1",
-        content: ["Content1", "Content2", "Content3"],
-        column: 1,
-        row: -2,
+        content: ["Content1", "Content2", "Content3", "Content4"],
+        nextModule: "Module3",
+        options: ["Option1", "Option2"],
     },
     {
-        moduleName: "Module2.2",
-        multiple: false,
+        moduleName: "Module3",
         details: "This is Module2.2",
         content: ["Content1", "Content2", "Content3"],
-        column: 2,
-        row: -2,
+        nextModule: "Module3",
+        options: ["Option1", "Option2", "Option3"],
     },
     {
-        moduleName: "Module2.3",
-        multiple: false,
-        details: "This is Module2.3",
-        content: ["Content1", "Content2"],
-        column: 3,
-        row: -2,
+        moduleName: "Option1",
+        details: "This is Option1",
+        content: ["Content1", "Content2", "Content3"],
+        nextModule: "",
+        options: [],
     },
     {
-        moduleName: "Module3.1",
-        multiple: false,
-        details: "This is Module3.1",
-        content: ["Content1", "Content2"],
-        column: 1,
-        row: -3,
+        moduleName: "Option2",
+        details: "This is Option2",
+        content: ["Content1", "Content2", "Content3"],
+        nextModule: "",
+        options: [],
     },
     {
-        moduleName: "Module3.2",
-        multiple: false,
-        details: "This is Module3.2",
-        content: ["Content1", "Content2"],
-        column: 2,
-        row: -3,
+        moduleName: "Option3",
+        details: "This is Option3",
+        content: ["Content1", "Content2", "Content3"],
+        nextModule: "",
+        options: [],
     },
+    {
+        moduleName: "Option4",
+        details: "This is Option4",
+        content: ["Content1", "Content2", "Content3"],
+        nextModule: "",
+        options: [],
+    }
 ]
+
 
 const Journey = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [visibleStates, setVisibleStates] = useState({});
     const [detailState, setDetails] = useState('');
+    const [visibleStates, setVisibleStates] = useState({});
+    const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
+    const [optionsState, setOptionsState] = useState([]);
+    const [renderedModules, setRenderedModules] = useState([modules[0]]);
+
+    const moduleContainerRef = useRef(null);
 
     const start = (moduleName) => {
         setVisibleStates((prevStates) => ({
             ...prevStates,
             [moduleName]: true
         }));
+        setTimeout(() => {
+            document.getElementById(moduleName)?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 1050);
     };
 
     const details = (details) => {
-        setDetails(details);
+        setDetails(details || "No Details Found!");
         setIsModalVisible(true);
     };
 
     const closeModal = () => {
         setIsModalVisible(false);
+        setIsOptionsModalVisible(false);
+    };
+
+    const choose = (options) => {
+        setOptionsState(options);
+        setIsOptionsModalVisible(true);
+    };
+
+    const moduleSelectHandle = (module) => {
+        closeModal();
+        setRenderedModules(prevModules => [...prevModules, module]);
     };
 
     const learn = () => {
         alert('Learning the Module!');
     }
 
-    const renderModules = (modules) => {
-        return modules.map((module) => (
-            <div key={module.moduleName} className="flex flex-col items-center relative pathway" style={{ gridColumn: module.column, gridRow: module.row }}>
-                {/* {module.multiple && <div className="horizontal"></div>} */}
-                <div className={`container-content ${visibleStates[module.moduleName] ? 'visible' : ''}`}>
-                    {/* <div className="vertical"></div> */}
-                    {module.content.map((content, i) => (
-                        <Content key={i} title={content} learn={learn} />
-                    ))}
-                </div>
-                <Module name={module.moduleName} start={() => start(module.moduleName)} details={() => details(module.details)} />
-            </div>
-        ));
-    };
+    const renderModules = (module) => (
+        <div key={module.moduleName} id={module.moduleName} className="flex flex-col items-center relative pathway">
+            {visibleStates[module.moduleName] && <div className={`container-content flex flex-col-reverse items-center ${visibleStates[module.moduleName] ? 'visible' : ''}`}>
+                {module.content.map((content, i) => (
+                    <Content key={i} title={content} learn={learn} />
+                ))}
+                <ChooseModule choose={() => choose(module.options)} />
+            </div>}
+            <Module
+                name={module.moduleName}
+                select={false}
+                start={() => start(module.moduleName)}
+                details={() => details(module.details)}
+                selectHandle={() => { }}
+            />
+        </div>
+    );
 
     useEffect(() => {
-        const columnElement = document.getElementsByClassName("pathway")[0] as HTMLElement;
-        const columnWidth = columnElement.getBoundingClientRect().width;
-        const columnHeight = columnElement.getBoundingClientRect().height;
-
-        const root = document.documentElement;
-        root.style.setProperty('--column-width', `${columnWidth}px`);
-        root.style.setProperty('--column-height', `${columnHeight}px`);
-    }, []);
-
-    useEffect(() => {
-        const span = document.getElementsByClassName("close")[0] as HTMLElement;
+        const span = document.querySelector(".close");
         if (span) {
             span.onclick = closeModal;
         }
@@ -118,15 +134,29 @@ const Journey = () => {
                 span.onclick = null;
             }
         };
-    }, [isModalVisible]);
+    }, [isModalVisible, isOptionsModalVisible]);
 
+    // useEffect(() => {
+    //     const columnElement = document.getElementsByClassName("pathway")[0] as HTMLElement;
+    //     const columnHeight = columnElement.getBoundingClientRect().height;
+    //     const root = document.documentElement;
+    //     root.style.setProperty('--column-height', `${columnHeight}px`);
+    // }, []);
 
     return (
-        <div>
+        <div className="journey-container" style={{ height: '100vh', overflowY: 'auto' }}>
+            {isOptionsModalVisible && (
+                <OptionsModal
+                    options={optionsState}
+                    modules={modules}
+                    start={start}
+                    details={details}
+                    selectHandle={moduleSelectHandle}
+                />
+            )}
             {isModalVisible && <Modal details={detailState} />}
-            <div className="grid-container">
-                {renderModules(modules)}
-                <div className="relative bg-black"></div>
+            <div id="module-container" ref={moduleContainerRef} className="flex flex-col-reverse items-center justify-center relative min-h-full py-8">
+                {renderedModules.map(renderModules)}
             </div>
         </div>
     );

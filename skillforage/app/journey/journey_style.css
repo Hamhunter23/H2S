@@ -3,8 +3,13 @@
 @tailwind utilities;
 
 :root{
-    --column-width: 0px;
     --column-height: 0px;
+}
+
+.journey-container {
+    height: 100vh;
+    overflow-y: auto;
+    scroll-behavior: smooth;
 }
 
 .grid-container {
@@ -15,15 +20,7 @@
     position: relative;
 }
 
-.horizontal{
-    @apply relative m-0;
-}
-
-.vertical {
-    @apply relative m-0;
-}
-
-.vertical::before{
+/* .vertical::before{
     content: '';
     position: absolute;
     width: 2px;
@@ -32,24 +29,24 @@
     z-index: -1;
     left: 50%;
     transform: translateX(-50%);
-}
+} */
 
-.horizontal::before{
-    content: '';
-    position: absolute;
-    width: calc(2*(var(--column-width)) + 2rem);
-    height: 2px;
-    background-color: #d1d5db;
-    transform: translateY(-50%);
-}
-
-.container-content {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.container-content.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+@keyframes slideIn {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .container-content {
+    animation-duration: 0.8s;
+    animation-fill-mode: both;
+  }
+  
+  .container-content.visible {
+    animation-name: slideIn;
+  }

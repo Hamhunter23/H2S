@@ -1,24 +1,22 @@
-"use client";
-
 import React, { useRef, useState, useEffect } from "react";
 
 interface ModuleProps {
     name: String;
+    select: boolean;
     start: () => void;
     details: () => void;
+    selectHandle: () => void;
 }
 
-const Module: React.FC<ModuleProps> = ({ name, start, details }) => {
-
-
+const Module: React.FC<ModuleProps> = ({ name, select, start, selectHandle, details }) => {
     return (
-        <div className="flex flex-col gap-1.5 items-center justify-center bg-blue-500 rounded-2xl w-72 h-40 relative m-5 myModule">
+        <div className="flex flex-col gap-1.5 items-center justify-center bg-blue-500 rounded-2xl w-72 h-40 relative m-5">
             <p>{name}</p>
             <button
                 className="bg-black rounded px-4 hover:bg-blue-700"
-                onClick={start}
+                onClick={select ? selectHandle : start}
             >
-                Start
+                {select ? "Select": "Start"}
             </button>
             <button
                 className="bg-black rounded px-4 hover:bg-blue-700"
