@@ -1,114 +1,162 @@
 "use client"
 import React, { useState } from 'react';
-import { createReadStream } from 'fs';
-import csv from 'csv-parser';
-import { createObjectCsvWriter } from 'csv-writer';
+import axios from 'axios';
+import { read, utils, writeFileXLSX } from 'xlsx';
+import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import { Loader2 } from "lucide-react";
 
-const dataPath = '/path/to/your/csvfile.csv';
-const outputPath = '/path/to/data/output.csv';
-
-interface CsvRow {
-  Category: string;
-  Description: string;
-  Link: string;
+interface LearningResource {
+  topic: string;
+  title: string;
+  url: string;
 }
 
-const MyComponent: React.FC = () => {
-  const [prompt, setPrompt] = useState('');
-  const [result, setResult] = useState<CsvRow[]>([]);
+const Navbar = () => {
+  return (
+    <nav className="bg-background p-4 shadow-md">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="flex items-center">
+          <img src="https://placehold.co/50" alt="Logo" className="h-8 w-8 mr-2" />
+          <span className="font-semibold text-lg">SkillForge</span>
+        </div>
+        <div className="flex space-x-4">
+          <a href="#" className="hover:text-primary transition duration-200">Home</a>
+          <a href="#" className="hover:text-primary transition duration-200">Profile</a>
+          <a href="#" className="hover:text-primary transition duration-200">Courses</a>
+        </div>
+        <div className="flex space-x-4">
+          <Button variant="ghost">Profile</Button>
+          <Button variant="ghost">Settings</Button>
+          <Button variant="outline">Logout</Button>
+        </div>
+      </div>
+    </nav>
+  );
+};
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPrompt(e.target.value);
-  };
+const LearningComponent: React.FC<{ username: string }> = ({ username }) => {
+  const [learningGoal, setLearningGoal] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<LearningResource[] | null>(null);
 
-  const handleSubmit = async () => {
-    if (!prompt) return;
-
-    const csvData: CsvRow[] = [];
-
-    // Read the CSV file
-    createReadStream(dataPath)
-      .pipe(csv())
-      .on('data', (row: CsvRow) => {
-        csvData.push(row);
-      })
-      .on('end', async () => {
-        // Process the prompt with Llama3 model
-        const relevantEntries = await processWithLlama3(prompt, csvData);
-
-        // Output to new CSV file
-        const csvWriter = createObjectCsvWriter({
-          path: outputPath,
-          header: [
-            { id: 'Category', title: 'Category' },
-            { id: 'Description', title: 'Description' },
-            { id: 'Link', title: 'Link' }
-          ]
-        });
-
-        await csvWriter.writeRecords(relevantEntries);
-        setResult(relevantEntries);
-      });
-  };
-
-  const processWithLlama3 = async (prompt: string, csvData: CsvRow[]) => {
-    const systemPrompt = `
-      You are given a list of educational resources in CSV format. 
-      Each entry consists of a Category, a Description, and a Link.
-      The user's prompt is about a specific topic they want to learn.
-      Respond with the relevant entries from the CSV in the format:
-      Category, Description, Link
-      Ensure the response includes only entries related to the user's query.
-    `;
-
-    const input = `${systemPrompt}\n\nUser's prompt: ${prompt}\n\n${csvData.map(row => `${row.Category}, ${row.Description}, ${row.Link}`).join('\n')}`;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
 
     try {
-      const response = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama2:8b',
-          prompt: input,
-        }),
+      // Fetch data.csv from the public directory
+      const csvData = await fetch('/onlyTitles.csv');
+      const fileContent = await csvData.text();
+
+      // Parse CSV content
+      const dataWorkbook = read(fileContent, { type: 'string' });
+      const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
+      const dataArray = utils.sheet_to_json<LearningResource>(dataSheet, { header: ['topic', 'title'] });
+
+      // Prepare the prompt for Ollama
+      const systemPrompt = "Analyze the provided CSV data to extract only the rows that are most relevant to the user's learning goal. Return the results formatted as 'topic', 'title'. Ensure the rows are in increasing order of skill requirement. Do not include any introductory text, explanations, or additional comments. Provide only the filtered data.";
+      const userPrompt = `Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => `${row.topic},${row.title}`).join('\n')}`;
+      console.log(userPrompt);
+      console.log(systemPrompt);
+
+      //Send request to Ollama
+      const response = await axios.post('http://localhost:11434/api/generate', {
+        model: "llama3:8b",
+        prompt: `${systemPrompt}\n\nUser: ${userPrompt}`,
+        stream: false
       });
 
-      const responseText = await response.text();
+      //Parse Ollama's response
+      const relevantLines = response.data.response.trim().split('\n');
+      const relevantData = relevantLines.map((line: string) => {
+        const [topic, title] = line.split(',');
+        return { topic, title } as LearningResource;
+      });
 
-      // Extract relevant entries from the response
-      const responseLines = responseText.split('\n');
-      const relevantEntries = csvData.filter(row => 
-        responseLines.some((line: string) => line.includes(row.Description) && line.includes(row.Link))
-      );
+      //Write to output.csv
+      const outputWorkbook = utils.book_new();
+      const outputSheet = utils.json_to_sheet(relevantData);
+      utils.book_append_sheet(outputWorkbook, outputSheet, "RelevantData");
+      writeFileXLSX(outputWorkbook, 'output.csv');
 
-      return relevantEntries;
-    } catch (error) {
-      console.error('Error processing with Llama3:', error);
-      return [];
+      console.log("Data written to output.csv");
+      setResult(relevantData);
+    } catch (err) {
+      setError("An error occurred while processing your request.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <input
-        type="text"
-        value={prompt}
-        onChange={handleInputChange}
-        placeholder="Enter a topic you want to learn about"
-      />
-      <button onClick={handleSubmit}>Submit</button>
-      {result.length > 0 && (
-        <div>
-          <h3>Relevant Entries:</h3>
-          <ul>
-            {result.map((entry, index) => (
-              <li key={index}>{entry.Description} - <a href={entry.Link}>Link</a></li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-center">
+              Hey, what do you want to learn?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                type="text"
+                value={learningGoal}
+                onChange={(e) => setLearningGoal(e.target.value)}
+                placeholder="Enter your learning goal here..."
+                className="w-full"
+                style={{ color: 'black', backgroundColor: 'white' }}
+              />
+              <Button
+                variant="ghost" 
+                type="submit" 
+                disabled={isLoading}
+                className='w-full bg-white text-black'
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing
+                  </>
+                ) : (
+                  'Submit'
+                )}
+              </Button>
+            </form>
+            {error && (
+              <p className="text-red-500 mt-4 text-center">{error}</p>
+            )}
+            {result && (
+              <div className="mt-6">
+                <h2 className="text-2xl font-bold mb-4">Relevant Resources:</h2>
+                <ul className="space-y-2">
+                  {result.map((item, index) => (
+                    <li key={index}>
+                      <a 
+                        href={item.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary hover:underline"
+                      >
+                        {item.title} <span className="text-gray-500">({item.topic})</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 };
 
-export default MyComponent;
+export default LearningComponent;

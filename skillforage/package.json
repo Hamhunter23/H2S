@@ -14,10 +14,14 @@
     "@react-three/fiber": "^8.16.8",
     "@react-three/postprocessing": "^2.16.2",
     "@types/three": "^0.167.0",
+    "axios": "^1.7.2",
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
+    "formidable": "^3.5.1",
     "framer-motion": "^11.3.18",
     "gsap": "^3.12.5",
+    "lucide-react": "^0.417.0",
+    "mongodb": "^6.8.0",
     "next": "^14.2.5",
     "ollama": "^0.5.6",
     "papaparse": "^5.4.1",
@@ -25,9 +29,11 @@
     "react-d3-tree": "^3.6.2",
     "react-dom": "^18.3.1",
     "react-spring": "^9.7.4",
-    "three": "^0.167.0"
+    "three": "^0.167.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/formidable": "^3.4.5",
     "@types/node": "^20",
     "@types/offscreencanvas": "^2019.7.3",
     "@types/papaparse": "^5.3.14",
