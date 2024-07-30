@@ -1,9 +1,13 @@
 topic,title
-LLM,Introduction to BERT
-LLM,Explaining GPT-3
-LLM,ChatGPT: How It Works
-LLM,Applications of Large Language Models
-RUST Programming,Rust for Beginners
-RUST Programming,Building a Web App in Rust
-Machine Learning,Supervised vs Unsupervised Learning
-Machine Learning,Feature Engineering in Machine Learning
+Python Programming,Python Basics
+Python Programming,Data Types and Variables
+Computer Vision,Introduction to Computer Vision
+Computer Vision,Image Processing Basics
+Machine Learning,Introduction to Machine Learning
+Machine Learning,Linear Regression
+Artificial Intelligence,Introduction to Artificial Intelligence
+Artificial Intelligence,Machine Learning
+MERN Stack,Introduction to MERN Stack
+MERN Stack,Setting up MERN Development Environment
+MERN Stack,MongoDB Basics
+Computer Networks,Introduction to Computer Vision

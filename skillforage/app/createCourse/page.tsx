@@ -82,9 +82,33 @@ const LearningComponent: React.FC = () => {
       const dataWorkbook = read(fileContent, { type: 'string' });
       const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
       const dataArray = xlsxUtils.sheet_to_json<LearningResource>(dataSheet, { header: 1 });
-    
-      const systemPrompt = "Analyze the provided CSV data to extract only the rows that are most relevant to the user's learning goal. Return the results formatted as 'topic', 'title'. Ensure the rows are in increasing order of skill requirement. Do not include any introductory text, explanations, or additional comments. Provide only the filtered data. Don't add any special characters to the output.";
-      const userPrompt = `Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => row.join(',')).join('\n')}`;
+        
+      const systemPrompt = `You are a professional Course Designer with expertise in curriculum development and instructional design. Your task is to create a well-structured, logical course outline based on the provided CSV data and the user's learning goals.
+
+        Follow these guidelines:
+        1. Assume the USER has zero knowledge about the domain unless they specify otherwise.
+        2. Analyze the provided CSV data to extract rows relevant to the user's learning/upskilling goal.
+        3. Include foundational topics necessary for understanding more advanced concepts.
+        4. Ensure a logical progression of topics, starting with the most basic and building up to more complex subjects.
+        5. If a subtopic is included, ensure its parent topic or a relevant prerequisite is also part of the course structure.
+        6. Order the topics in increasing complexity, considering dependencies between topics.
+
+        Output format:
+        - Return only the relevant CSV row entries in 'topic', 'title' format.
+        - Ensure the rows are in increasing order of skill requirement or complexity.
+        - Do not include any introductory text, explanations, or additional comments.
+        - Provide only the filtered data without any special characters.
+
+        Example output:
+        'Introduction to Programming', 'What is Programming?'
+        'Introduction to Programming', 'Basic Programming Concepts'
+        'Variables and Data Types', 'Understanding Variables'
+        'Variables and Data Types', 'Common Data Types'
+        'Control Structures', 'If-Else Statements'
+        'Control Structures', 'Loops in Programming'
+
+        Ensure the course structure is comprehensive, well-organized, and tailored to the user's specific learning goals while maintaining the simple 'topic', 'title' output format.`;
+      const userPrompt = `USER's Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => row.join(',')).join('\n')}`;
     
       console.log(userPrompt);
       console.log(systemPrompt);
