@@ -11,7 +11,6 @@
   scroll-behavior: smooth;
 }
 
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -28,7 +27,7 @@
 }
 
 #module-container.move {
-  width: 25%;
+  width: 20%;
 }
 
 #module-container::-webkit-scrollbar {
@@ -57,8 +56,6 @@
 
 .learn-board.move {
   width: 75%;
-  padding-left: 2rem;
-  padding-right: 2rem;
 }
 
 .learn-board {

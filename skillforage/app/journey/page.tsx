@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { Info } from 'lucide-react';
 import Modal from './components/Modal'
 import Module from './components/ModuleBox';
 import Content from './components/ContentBox';
@@ -261,19 +262,29 @@ const Journey = () => {
             {isModalVisible && <Modal details={detailState} />}
             <div className="flex relative h-full">
                 <div id="module-container" ref={moduleContainerRef} className={`flex-grow overflow-y-auto h-full py-8 ${learnState ? "move" : ""}`} >
-                    <div className="flex flex-col-reverse items-center justify-center relative w-full min-h-full" style={{ overflowY: 'auto' }}>
+                    <div className="flex flex-col-reverse items-center justify-center overflow-x-hidden relative w-full min-h-full" style={{ overflowY: 'auto' }}>
                         {renderedModules.toArray().map(renderModules)}
                     </div>
                 </div>
-                <div className={`flex-shrink-0 min-h-full py-8 px-8 learn-board ${learnState ? "move" : ""}`}>
-                    {learnState && <div className="bg-gray-400 rounded-2xl w-full relative min-h-full">
-                        <span className="text-black float-right text-3xl font-bold hover:text-white hover:no-underline hover:cursor-pointer focus:text-white focus:no-underline focus:cursor-pointer closeLearnBoard">
+                <div className={`flex flex-col h-screen bg-gray-300 learn-board ${learnState ? "move" : ""}`}>
+                    {learnState && <header className="bg-white p-4">
+                        <span className="text-black float-right text-3xl font-bold hover:text-red-700 hover:no-underline hover:cursor-pointer focus:text-red-700 focus:no-underline focus:cursor-pointer closeLearnBoard">
                             &times;
                         </span>
+                        <h1 className="text-2xl font-bold text-gray-800">Content Heading</h1>
+                        <p className="text-sm text-gray-600">Module 1 &gt; Content 1</p>
+                    </header>}
+                    {learnState && <div className="bg-white shadow-xl rounded-2xl w-fill my-6 mx-4 relative h-full">
                         <div className="flex flex-col justify-center items-center h-full">
                             <h1 className="text-black font-bold">Content Goes Here</h1>
                         </div>
                     </div>}
+                    {learnState && <footer className="bg-white p-4">
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div className="bg-blue-600 h-2.5 rounded-full w-1/3"></div>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2">Progress: 33%</p>
+                    </footer>}
                 </div>
             </div>
         </div>
