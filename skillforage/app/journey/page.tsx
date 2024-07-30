@@ -61,59 +61,144 @@ const modules = [
     }
 ]
 
+class Node<T> {
+    value: T;
+    next: Node<T> | null = null;
+
+    constructor(value: T) {
+        this.value = value;
+        this.next = null;
+    }
+}
+
+class LinkedList<T> {
+    head: Node<T> | null = null;
+
+    constructor(initialValue: T | null = null) {
+        this.head = initialValue !== null ? new Node(initialValue) : null;
+    }
+
+    add(value: T) {
+        const newNode = new Node(value);
+        if (this.head === null) {
+            this.head = newNode;
+        } else {
+            let current = this.head;
+            while (current.next !== null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    toArray(): T[] {
+        const result: T[] = [];
+        let current = this.head;
+        while (current) {
+            result.push(current.value);
+            current = current.next;
+        }
+        return result;
+    }
+}
 
 const Journey = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [detailState, setDetails] = useState('');
-    const [visibleStates, setVisibleStates] = useState({});
+    const [visibleStates, setVisibleStates] = useState<{ [key: string]: boolean }>({});
     const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
-    const [optionsState, setOptionsState] = useState([]);
-    const [renderedModules, setRenderedModules] = useState([modules[0]]);
+    const [optionsState, setOptionsState] = useState<any[]>([]);
+    const [nextModuleState, setNextModuleState] = useState('');
+    const [currentModuleState, setCurrentModuleState] = useState('');
+    const [renderedModules, setRenderedModules] = useState(() => {
+        const initialLinkedList = new LinkedList<any>();
+        initialLinkedList.add(modules[0]);
+        return initialLinkedList;
+    });
+    const [choiceState, setChoiceState] = useState({});
+
 
     const moduleContainerRef = useRef(null);
+    const lastModuleRef = useRef(null);
 
-    const start = (moduleName) => {
+
+    const start = (moduleName: string) => {
         setVisibleStates((prevStates) => ({
             ...prevStates,
             [moduleName]: true
         }));
         setTimeout(() => {
             document.getElementById(moduleName)?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }, 1050);
+        }, 700);
     };
 
-    const details = (details) => {
+    const details = (details: string) => {
         setDetails(details || "No Details Found!");
         setIsModalVisible(true);
     };
 
     const closeModal = () => {
         setIsModalVisible(false);
+    };
+    
+    const closeOptions = () => {
         setIsOptionsModalVisible(false);
     };
 
-    const choose = (options) => {
+    const choose = (options: any[], nextModule: string, currentModule:string) => {
         setOptionsState(options);
+        setCurrentModuleState(currentModule);
+        setNextModuleState(nextModule);
         setIsOptionsModalVisible(true);
     };
 
-    const moduleSelectHandle = (module) => {
-        closeModal();
-        setRenderedModules(prevModules => [...prevModules, module]);
+    const moduleSelectHandle = (selectedModule: any) => {
+        closeOptions();
+        setRenderedModules(prevModules => {
+            const newModules = new LinkedList<any>();
+            let current = prevModules.head;
+            
+            while (current && current.value.moduleName !== currentModuleState) {
+                newModules.add(current.value);
+                current = current.next;
+            }
+            
+            if (current) {
+                newModules.add(current.value);
+            }
+            
+            newModules.add(selectedModule);            
+            return newModules;
+        });
+
+        setChoiceState(prevChoices => ({
+            ...prevChoices,
+            [currentModuleState]: selectedModule.moduleName
+        }));
+
+        setVisibleStates(prevStates => ({
+            ...prevStates,
+            [selectedModule.moduleName]: false
+        }));
+
+        lastModuleRef.current = selectedModule.moduleName;
     };
+
 
     const learn = () => {
         alert('Learning the Module!');
     }
 
-    const renderModules = (module) => (
+    const renderModules = (module: any) => (
         <div key={module.moduleName} id={module.moduleName} className="flex flex-col items-center relative pathway">
-            {visibleStates[module.moduleName] && <div className={`container-content flex flex-col-reverse items-center ${visibleStates[module.moduleName] ? 'visible' : ''}`}>
-                {module.content.map((content, i) => (
-                    <Content key={i} title={content} learn={learn} />
-                ))}
-                <ChooseModule choose={() => choose(module.options)} />
-            </div>}
+            {visibleStates[module.moduleName] && (
+                <div className={`container-content flex flex-col-reverse items-center ${visibleStates[module.moduleName] ? 'visible' : ''}`}>
+                    {module.content.map((content: string, i: number) => (
+                        <Content key={i} title={content} learn={learn} />
+                    ))}
+                    {(module.options.length !== 0) && <ChooseModule choose={() => choose(module.options, module.nextModule, module.moduleName)} />}
+                </div>
+            )}
             <Module
                 name={module.moduleName}
                 select={false}
@@ -125,29 +210,40 @@ const Journey = () => {
     );
 
     useEffect(() => {
-        const span = document.querySelector(".close");
+        const span = document.querySelector(".close") as HTMLElement;
+        const spanOption = document.querySelector(".closeOption") as HTMLElement;
         if (span) {
             span.onclick = closeModal;
+        }
+        if (spanOption) {
+            spanOption.onclick = closeOptions;
         }
         return () => {
             if (span) {
                 span.onclick = null;
             }
+            if (spanOption) {
+                spanOption.onclick = null;
+            }
         };
     }, [isModalVisible, isOptionsModalVisible]);
 
-    // useEffect(() => {
-    //     const columnElement = document.getElementsByClassName("pathway")[0] as HTMLElement;
-    //     const columnHeight = columnElement.getBoundingClientRect().height;
-    //     const root = document.documentElement;
-    //     root.style.setProperty('--column-height', `${columnHeight}px`);
-    // }, []);
+    useEffect(() => {
+        if (lastModuleRef.current) {
+            const lastModule = document.getElementById(lastModuleRef.current);
+            if (lastModule) {
+                lastModule.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            lastModuleRef.current = null;
+        }
+    }, [renderedModules]);
 
     return (
         <div className="journey-container" style={{ height: '100vh', overflowY: 'auto' }}>
             {isOptionsModalVisible && (
                 <OptionsModal
                     options={optionsState}
+                    nextModule={nextModuleState}
                     modules={modules}
                     start={start}
                     details={details}
@@ -156,7 +252,7 @@ const Journey = () => {
             )}
             {isModalVisible && <Modal details={detailState} />}
             <div id="module-container" ref={moduleContainerRef} className="flex flex-col-reverse items-center justify-center relative min-h-full py-8">
-                {renderedModules.map(renderModules)}
+                {renderedModules.toArray().map(renderModules)}
             </div>
         </div>
     );
