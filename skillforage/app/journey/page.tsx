@@ -35,14 +35,14 @@ const modules = [
         moduleName: "Option1",
         details: "This is Option1",
         content: ["Content1", "Content2", "Content3"],
-        nextModule: "",
+        nextModule: "Option2",
         options: [],
     },
     {
         moduleName: "Option2",
         details: "This is Option2",
         content: ["Content1", "Content2", "Content3"],
-        nextModule: "",
+        nextModule: "Option3",
         options: [],
     },
     {
@@ -110,13 +110,13 @@ const Journey = () => {
     const [optionsState, setOptionsState] = useState<any[]>([]);
     const [nextModuleState, setNextModuleState] = useState('');
     const [currentModuleState, setCurrentModuleState] = useState('');
+    const [learnState, setLearnState] = useState(false);
+
     const [renderedModules, setRenderedModules] = useState(() => {
         const initialLinkedList = new LinkedList<any>();
         initialLinkedList.add(modules[0]);
         return initialLinkedList;
     });
-    const [choiceState, setChoiceState] = useState({});
-
 
     const moduleContainerRef = useRef(null);
     const lastModuleRef = useRef(null);
@@ -140,12 +140,17 @@ const Journey = () => {
     const closeModal = () => {
         setIsModalVisible(false);
     };
-    
+
     const closeOptions = () => {
+        setIsModalVisible(false);
         setIsOptionsModalVisible(false);
     };
 
-    const choose = (options: any[], nextModule: string, currentModule:string) => {
+    const closeLearnBoard = () => {
+        setLearnState(false);
+    };
+
+    const choose = (options: any[], nextModule: string, currentModule: string) => {
         setOptionsState(options);
         setCurrentModuleState(currentModule);
         setNextModuleState(nextModule);
@@ -157,24 +162,19 @@ const Journey = () => {
         setRenderedModules(prevModules => {
             const newModules = new LinkedList<any>();
             let current = prevModules.head;
-            
+
             while (current && current.value.moduleName !== currentModuleState) {
                 newModules.add(current.value);
                 current = current.next;
             }
-            
+
             if (current) {
                 newModules.add(current.value);
             }
-            
-            newModules.add(selectedModule);            
+
+            newModules.add(selectedModule);
             return newModules;
         });
-
-        setChoiceState(prevChoices => ({
-            ...prevChoices,
-            [currentModuleState]: selectedModule.moduleName
-        }));
 
         setVisibleStates(prevStates => ({
             ...prevStates,
@@ -186,7 +186,7 @@ const Journey = () => {
 
 
     const learn = () => {
-        alert('Learning the Module!');
+        setLearnState(true);
     }
 
     const renderModules = (module: any) => (
@@ -197,6 +197,7 @@ const Journey = () => {
                         <Content key={i} title={content} learn={learn} />
                     ))}
                     {(module.options.length !== 0) && <ChooseModule choose={() => choose(module.options, module.nextModule, module.moduleName)} />}
+                    {module.options.length === 0 && module.nextModule !== "" && renderModules(module.nextModule)}
                 </div>
             )}
             <Module
@@ -212,11 +213,15 @@ const Journey = () => {
     useEffect(() => {
         const span = document.querySelector(".close") as HTMLElement;
         const spanOption = document.querySelector(".closeOption") as HTMLElement;
+        const spanLearnBoard = document.querySelector(".closeLearnBoard") as HTMLElement;
         if (span) {
             span.onclick = closeModal;
         }
         if (spanOption) {
             spanOption.onclick = closeOptions;
+        }
+        if (spanLearnBoard) {
+            spanLearnBoard.onclick = closeLearnBoard;
         }
         return () => {
             if (span) {
@@ -225,8 +230,11 @@ const Journey = () => {
             if (spanOption) {
                 spanOption.onclick = null;
             }
+            if (spanLearnBoard) {
+                spanLearnBoard.onclick = null;
+            }
         };
-    }, [isModalVisible, isOptionsModalVisible]);
+    }, [isModalVisible, isOptionsModalVisible, learnState]);
 
     useEffect(() => {
         if (lastModuleRef.current) {
@@ -239,7 +247,7 @@ const Journey = () => {
     }, [renderedModules]);
 
     return (
-        <div className="journey-container" style={{ height: '100vh', overflowY: 'auto' }}>
+        <div className="journey-container" style={{ height: '100vh', overflow: 'hidden' }}>
             {isOptionsModalVisible && (
                 <OptionsModal
                     options={optionsState}
@@ -251,8 +259,22 @@ const Journey = () => {
                 />
             )}
             {isModalVisible && <Modal details={detailState} />}
-            <div id="module-container" ref={moduleContainerRef} className="flex flex-col-reverse items-center justify-center relative min-h-full py-8">
-                {renderedModules.toArray().map(renderModules)}
+            <div className="flex relative h-full">
+                <div id="module-container" ref={moduleContainerRef} className={`flex-grow overflow-y-auto h-full py-8 ${learnState ? "move" : ""}`} >
+                    <div className="flex flex-col-reverse items-center justify-center relative w-full min-h-full" style={{ overflowY: 'auto' }}>
+                        {renderedModules.toArray().map(renderModules)}
+                    </div>
+                </div>
+                <div className={`flex-shrink-0 min-h-full py-8 px-8 learn-board ${learnState ? "move" : ""}`}>
+                    {learnState && <div className="bg-gray-400 rounded-2xl w-full relative min-h-full">
+                        <span className="text-black float-right text-3xl font-bold hover:text-white hover:no-underline hover:cursor-pointer focus:text-white focus:no-underline focus:cursor-pointer closeLearnBoard">
+                            &times;
+                        </span>
+                        <div className="flex flex-col justify-center items-center h-full">
+                            <h1 className="text-black font-bold">Content Goes Here</h1>
+                        </div>
+                    </div>}
+                </div>
             </div>
         </div>
     );

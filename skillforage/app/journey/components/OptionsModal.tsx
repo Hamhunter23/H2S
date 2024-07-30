@@ -45,11 +45,11 @@ const OptionsModal: React.FC<OptionsModalProps> = ({ options, nextModule, module
                     &times;
                 </span>
                 <div className="flex flex-col items-center">
-                    <h1 className="text-black text-lg font-medium">Continue your Journey</h1>
+                    <h1 className="text-black text-lg font-bold">Continue your Journey</h1>
                     {renderModule(renderNextModule)}
                 </div>
                 <div className="flex flex-col items-center">
-                    <h1 className="text-black text-lg font-medium">Suggested</h1>
+                    <h1 className="text-black text-lg font-bold">Suggested</h1>
                     <div id="options" className="flex flex-wrap w-full justify-center">
                         {renderedModules.map(renderModule)}
                     </div>

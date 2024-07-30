@@ -2,23 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{
-    --column-height: 0px;
+:root {
+  --column-height: 0px;
 }
 
 .journey-container {
-    height: 100vh;
-    overflow-y: auto;
-    scroll-behavior: smooth;
+  height: 100vh;
+  scroll-behavior: smooth;
 }
 
-.grid-container {
-    display: grid;
-    grid-auto-columns: auto;
-    grid-auto-rows: auto;
-    column-gap: 1rem;
-    position: relative;
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
+#module-container {
+  transition: width 0.8s ease-in-out;
+  width: 100%;
+}
+
+#module-container.move {
+  width: 25%;
+}
+
+#module-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+#module-container::-webkit-scrollbar-track {
+  background: #585858;
+}
+
+#module-container::-webkit-scrollbar-thumb {
+  background: #ff0000;
+  border-radius: 6px;
+}
+
+#module-container::-webkit-scrollbar-thumb:hover {
+  background: #b94a4a;
+}
+
+.learn-board {
+  transition: width 0.8s ease-in-out;
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.learn-board.move {
+  width: 75%;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.learn-board {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
 
 /* .vertical::before{
     content: '';
@@ -32,21 +78,22 @@
 } */
 
 @keyframes slideIn {
-    from {
-      transform: translateY(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+  from {
+    transform: translateY(100%);
+    opacity: 0;
   }
-  
-  .container-content {
-    animation-duration: 0.8s;
-    animation-fill-mode: both;
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
-  
-  .container-content.visible {
-    animation-name: slideIn;
-  }
+}
+
+.container-content {
+  animation-duration: 0.8s;
+  animation-fill-mode: both;
+}
+
+.container-content.visible {
+  animation-name: slideIn;
+}
