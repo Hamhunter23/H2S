@@ -4,6 +4,9 @@ import Module from "./ModuleBox";
 interface Module {
     moduleName: string;
     details: string;
+    content: string[];
+    nextModule: string;
+    options: string[];
 }
 
 interface OptionsModalProps {
@@ -27,7 +30,7 @@ const OptionsModal: React.FC<OptionsModalProps> = ({ options, nextModule, module
         return modules.find(module => module.moduleName === nextModule);
     }, [nextModule]);
 
-    const renderModule = (module) => (
+    const renderModule = (module: Module) => (
         <Module 
             key={module.moduleName} 
             select={true} 
@@ -46,7 +49,7 @@ const OptionsModal: React.FC<OptionsModalProps> = ({ options, nextModule, module
                 </span>
                 <div className="flex flex-col items-center">
                     <h1 className="text-black text-lg font-bold">Continue your Journey</h1>
-                    {renderModule(renderNextModule)}
+                    {renderNextModule && renderModule(renderNextModule)}
                 </div>
                 <div className="flex flex-col items-center">
                     <h1 className="text-black text-lg font-bold">Suggested</h1>
