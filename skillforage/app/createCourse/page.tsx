@@ -6,7 +6,7 @@ import { read, utils as xlsxUtils, writeFileXLSX } from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code } from "lucide-react";
+import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code, CloudLightning } from "lucide-react";
 
 interface LearningResource {
   topic: string;
@@ -225,6 +225,11 @@ const LearningComponent: React.FC = () => {
                   />
                   <FeatureCard 
                     icon={<Rocket size={40} />}
+                    title="Stay Consistent"
+                    description="Consistency is key to achieving your learning goals."
+                  />
+                  <FeatureCard 
+                    icon={<CloudLightning size={40} />}
                     title="Stay Consistent"
                     description="Consistency is key to achieving your learning goals."
                   />
