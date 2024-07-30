@@ -1,11 +1,12 @@
 "use client"
 import React, { useState } from 'react';
 import axios from 'axios';
-import { read, utils, writeFileXLSX } from 'xlsx';
+import Papa from 'papaparse';
+import { read, utils as xlsxUtils, writeFileXLSX } from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code } from "lucide-react";
+import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code, CloudLightning } from "lucide-react";
 
 interface LearningResource {
   topic: string;
@@ -28,11 +29,6 @@ const Navbar = () => {
         >
           SkillForge
         </motion.div>
-        {/* <div className="flex space-x-4">
-          <NavItem icon={<BookOpen size={20} />} text="Learn" />
-          <NavItem icon={<Rocket size={20} />} text="Explore" />
-          <NavItem icon={<Award size={20} />} text="Achieve" />
-        </div> */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -80,67 +76,97 @@ const LearningComponent: React.FC = () => {
     setResult(null);
 
     try {
-        const csvData = await fetch('/onlyTitles.csv');
-        const fileContent = await csvData.text();
-      
-        const dataWorkbook = read(fileContent, { type: 'string' });
-        const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
-        const dataArray = utils.sheet_to_json<LearningResource>(dataSheet, { header: ['topic', 'title'] });
-      
-        const systemPrompt = "Analyze the provided CSV data to extract only the rows that are most relevant to the user's learning goal. Return the results formatted as 'topic', 'title'. Ensure the rows are in increasing order of skill requirement. Do not include any introductory text, explanations, or additional comments. Provide only the filtered data. Don't add any special characters to the output.";
-        const userPrompt = `Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => `${row.topic},${row.title}`).join('\n')}`;
-      
-        console.log(userPrompt);
-        console.log(systemPrompt);
-      
-        const response = await axios.post('http://localhost:11434/api/generate', {
-          model: "llama3:8b",
-          prompt: `${systemPrompt}\n\nUser: ${userPrompt}`,
-          stream: false
-        });
-      
-        const relevantLines = response.data.response.trim().split('\n');
-      
-        // Find the indices of the first and second empty lines
-        let firstEmptyLineIndex = -1;
-        let secondEmptyLineIndex = -1;
-        for (let i = 0; i < relevantLines.length; i++) {
-          if (relevantLines[i].trim() === '') {
-            if (firstEmptyLineIndex === -1) {
-              firstEmptyLineIndex = i;
-            } else {
-              secondEmptyLineIndex = i;
-              break;
-            }
+      const csvData = await fetch('/onlyTitles.csv');
+      const fileContent = await csvData.text();
+    
+      const dataWorkbook = read(fileContent, { type: 'string' });
+      const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
+      const dataArray = xlsxUtils.sheet_to_json<LearningResource>(dataSheet, { header: 1 });
+        
+      const systemPrompt = `You are a professional Course Designer with expertise in curriculum development and instructional design. Your task is to create a well-structured, logical course outline based on the provided CSV data and the user's learning goals.
+
+        Follow these guidelines:
+        1. Assume the USER has zero knowledge about the domain unless they specify otherwise.
+        2. Analyze the provided CSV data to extract rows relevant to the user's learning/upskilling goal.
+        3. Include foundational topics necessary for understanding more advanced concepts.
+        4. Ensure a logical progression of topics, starting with the most basic and building up to more complex subjects.
+        5. If a subtopic is included, ensure its parent topic or a relevant prerequisite is also part of the course structure.
+        6. Order the topics in increasing complexity, considering dependencies between topics.
+
+        Output format:
+        - Return only the relevant CSV row entries in 'topic', 'title' format.
+        - Ensure the rows are in increasing order of skill requirement or complexity.
+        - Do not include any introductory text, explanations, or additional comments.
+        - Provide only the filtered data without any special characters.
+
+        Example output:
+        'Introduction to Programming', 'What is Programming?'
+        'Introduction to Programming', 'Basic Programming Concepts'
+        'Variables and Data Types', 'Understanding Variables'
+        'Variables and Data Types', 'Common Data Types'
+        'Control Structures', 'If-Else Statements'
+        'Control Structures', 'Loops in Programming'
+
+        Ensure the course structure is comprehensive, well-organized, and tailored to the user's specific learning goals while maintaining the simple 'topic', 'title' output format.`;
+      const userPrompt = `USER's Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => row.join(',')).join('\n')}`;
+    
+      console.log(userPrompt);
+      console.log(systemPrompt);
+    
+      const response = await axios.post('http://localhost:11434/api/generate', {
+        model: "llama3:8b",
+        prompt: `${systemPrompt}\n\nUser: ${userPrompt}`,
+        stream: false
+      });
+    
+      const relevantLines = response.data.response.trim().split('\n');
+    
+      // Find the indices of the first and second empty lines
+      let firstEmptyLineIndex = -1;
+      let secondEmptyLineIndex = -1;
+      for (let i = 0; i < relevantLines.length; i++) {
+        if (relevantLines[i].trim() === '') {
+          if (firstEmptyLineIndex === -1) {
+            firstEmptyLineIndex = i;
+          } else {
+            secondEmptyLineIndex = i;
+            break;
           }
         }
-      
-        // Slice the array based on the empty line indices
-        let filteredLines = relevantLines;
-        if (firstEmptyLineIndex !== -1) {
-          filteredLines = relevantLines.slice(firstEmptyLineIndex + 1);
-        }
-        if (secondEmptyLineIndex !== -1) {
-          filteredLines = filteredLines.slice(0, secondEmptyLineIndex - firstEmptyLineIndex - 1);
-        }
-      
-        const relevantData = filteredLines.map((line: string) => {
-          const [topic, title] = line.split(',');
-          return { topic, title } as LearningResource;
-        });
-      
-        const outputWorkbook = utils.book_new();
-        const outputSheet = utils.json_to_sheet(relevantData);
-        utils.book_append_sheet(outputWorkbook, outputSheet, "RelevantData");
-        writeFileXLSX(outputWorkbook, 'output.csv');
-      
-        setResult(relevantData);
-      } catch (err) {
-        setError("An error occurred while processing your request.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }            
+      }
+    
+      // Slice the array based on the empty line indices
+      let filteredLines = relevantLines;
+      if (firstEmptyLineIndex !== -1) {
+        filteredLines = relevantLines.slice(firstEmptyLineIndex + 1);
+      }
+      if (secondEmptyLineIndex !== -1) {
+        filteredLines = filteredLines.slice(0, secondEmptyLineIndex - firstEmptyLineIndex - 1);
+      }
+    
+      const relevantData = filteredLines.map((line: string) => {
+        const [topic, title] = line.split(',');
+        return { topic, title } as LearningResource;
+      });
+    
+      // Generate and download CSV using PapaParse
+      const csv = Papa.unparse(relevantData, { header: true });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+    
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'output.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    
+      setResult(relevantData);
+    } catch (err) {
+      setError("An error occurred while processing your request.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -165,23 +191,22 @@ const LearningComponent: React.FC = () => {
               className="w-full text-lg p-6 pr-16 rounded-full bg-gray-800 border-2 border-gray-700 focus:border-teal-400 text-white placeholder-gray-500"
             />
             <Button
-  type="submit" 
-  disabled={isLoading}
-  className="absolute right-[1rem] top-[1rem] flex items-center justify-center rounded-full w-12 h-12 bg-teal-500 text-white hover:bg-teal-600"
->
-  {isLoading ? (
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-      className="flex items-center justify-center w-full h-full"
-    >
-      <Loader2 className="h-6 w-6" />
-    </motion.div>
-  ) : (
-    <Search className="h-6 w-6" />
-  )}
-</Button>
-
+              type="submit" 
+              disabled={isLoading}
+              className="absolute right-[1rem] top-[1rem] flex items-center justify-center rounded-full w-12 h-12 bg-teal-500 text-white hover:bg-teal-600"
+            >
+              {isLoading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="flex items-center justify-center w-full h-full"
+                >
+                  <Loader2 className="h-6 w-6" />
+                </motion.div>
+              ) : (
+                <Search className="h-6 w-6" />
+              )}
+            </Button>
           </form>
           <AnimatePresence>
             {error && (
@@ -217,30 +242,37 @@ const LearningComponent: React.FC = () => {
                     title="Be more Self-Aware"
                     description="Also let us know what you DO NOT know too, so that we cover them up to. ;)"
                   />
+                  <FeatureCard 
+                    icon={<BookOpen size={40} />}
+                    title="Break Down the Learning"
+                    description="Divide your learning goal into smaller, manageable topics."
+                  />
+                  <FeatureCard 
+                    icon={<Rocket size={40} />}
+                    title="Stay Consistent"
+                    description="Consistency is key to achieving your learning goals."
+                  />
+                  <FeatureCard 
+                    icon={<CloudLightning size={40} />}
+                    title="Stay Consistent"
+                    description="Consistency is key to achieving your learning goals."
+                  />
                 </div>
               </motion.div>
             )}
             {result && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-6"
-              >
-                <h2 className="text-3xl font-bold text-center mb-8 text-teal-400">Your Learning Path</h2>
-                {result.map((item, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition duration-300 border border-gray-700 hover:border-teal-400"
-                  >
-                    <h3 className="text-xl font-semibold mb-2 text-white">{item.title}</h3>
-                    <p className="text-sm text-teal-400">{item.topic}</p>
-                  </motion.div>
-                ))}
-              </motion.div>
+              <div className="mt-8">
+                <h2 className="text-2xl font-semibold text-center mb-4 text-teal-400">Filtered Learning Resources</h2>
+                <ul>
+                  {result.map((item, index) => (
+                    <li key={index} className="text-gray-300 mb-2">
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">
+                        {item.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </AnimatePresence>
         </motion.div>
