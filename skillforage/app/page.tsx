@@ -103,13 +103,6 @@ const HomePage = () => {
       <title>SkillForge - Redefining Learning</title>
       <div id="canvas-container" />
       <div id="cursor" />
-      <nav id="navigation" className={visible ? 'nav-visible' : 'nav-hidden'}>
-        <div className="nav-item" data-section="home">Home</div>
-        <div className="nav-item" data-section="about">About</div>
-        <div className="nav-item" data-section="features">Features</div>
-        <div className="nav-item" data-section="stats">Stats</div>
-        <div className="nav-item" data-section="testimonials">Testimonials</div>
-      </nav>
       <div id="progress-bar"></div>
       <section id="home" className="section">
         <h1 id="main-title">SkillForge</h1>
