@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+body,
+html {
+    font-family: 'Raleway', sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 :root {
   --column-height: 0px;
 }
@@ -21,10 +31,24 @@
   }
 }
 
+.glass{
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border:1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
 #module-container {
   transition: width 0.8s ease-in-out;
   width: 100%;
+  background-image: url('/bgimage.jpg');
+  background-size: cover; /* This ensures the image covers the entire container */
+  background-position: center; /* This centers the background image */
+  background-repeat: no-repeat; /* This prevents the image from repeating */
 }
+
 
 #module-container.move {
   width: 20%;
@@ -39,12 +63,12 @@
 }
 
 #module-container::-webkit-scrollbar-thumb {
-  background: #ff0000;
+  background: #ffffff;
   border-radius: 6px;
 }
 
 #module-container::-webkit-scrollbar-thumb:hover {
-  background: #b94a4a;
+  background: #848484;
 }
 
 .learn-board {

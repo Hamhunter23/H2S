@@ -377,7 +377,7 @@ const Journey = () => {
             )}
             {isModalVisible && <Modal details={detailState} />}
             <div className="flex relative h-full">
-                <div id="module-container" ref={moduleContainerRef} className={`flex-grow overflow-y-auto h-full py-8 ${learnState ? "move" : ""}`} >
+                <div id="module-container" ref={moduleContainerRef} className={`flex-grow overflow-y-auto h-full py-8   ${learnState ? "move" : ""}`} >
                     <div className="flex flex-col-reverse items-center justify-center overflow-x-hidden relative w-full min-h-full" style={{ overflowY: 'auto' }}>
                         {renderedModules.toArray().map(renderModules)}
                     </div>
