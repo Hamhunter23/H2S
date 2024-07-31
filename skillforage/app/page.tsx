@@ -42,9 +42,24 @@ const HomePage = () => {
 
     window.addEventListener('scroll', handleScroll);
 
+    const gradientElement = document.getElementById('gradient-bg');
+    let gradientAngle = 0;
+
+    function animateGradient() {
+      gradientAngle = (gradientAngle + 0.3) % 360;
+      if (gradientElement) {
+        gradientElement.style.background = `linear-gradient(${gradientAngle}deg, #000000, #0800fe, #9900d9)`;
+      }
+      requestAnimationFrame(animateGradient);
+    }
+
+    animateGradient();
+
     const handleNavClick = (event: Event) => {
       const targetId = (event.target as HTMLElement).dataset.section;
+      console.log(targetId);
       const targetSection = targetId ? document.getElementById(targetId) : null;
+      console.log(targetSection);
       if (targetSection) {
         window.scrollTo({
           top: targetSection.offsetTop,
@@ -67,6 +82,14 @@ const HomePage = () => {
 
   return (
     <div>
+      <div id="gradient-bg" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+      }} />
       <meta charSet="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>SkillForge - Redefining Learning</title>
@@ -82,12 +105,12 @@ const HomePage = () => {
       <div id="progress-bar"></div>
       <section id="home" className="section">
         <h1 id="main-title">SkillForge</h1>
-        <p id="subtitle">Revolutionizing learning through AI-driven personalization and blockchain certification</p>
+        <p id="subtitle">Revolutionizing learning through AI-driven personalization and project based certification</p>
         <button className="cta-button" onClick={() => window.location.href = 'http://localhost:3000/createCourse'}>Embark on Your Journey</button>
       </section>
       <section id="about" className="section">
         <h2>Redefine Your Learning</h2>
-        <p>SkillForge employs cutting-edge AI to create a learning experience as unique as you are. Our platform adapts to your learning style, pace, and goals, ensuring maximum efficiency and engagement.</p>
+        <p>SkillForge employs cutting-edge AI to create a learning experience as unique as you are. Our platform curates a course tailored to your learning needs in just a minute. Good-Bye to all the previous hassle that you'd have to go through to find resources to study from.</p>
       </section>
       <section id="features" className="section">
         <h2>Future-Proof Skills</h2>
@@ -109,15 +132,15 @@ const HomePage = () => {
       <section id="stats" className="section">
         <h2>Our Impact</h2>
         <div className="stats-container">
-          <div className="stat-item">
+          <div>
             <div className="stat-number">12000</div>
             <div className="stat-label">Active Learners</div>
           </div>
-          <div className="stat-item">
+          <div>
             <div className="stat-number">∞</div>
             <div className="stat-label">Courses</div>
           </div>
-          <div className="stat-item">
+          <div>
             <div className="stat-number">5000</div>
             <div className="stat-label">Certificates Issued</div>
           </div>

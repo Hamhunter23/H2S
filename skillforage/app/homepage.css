@@ -9,9 +9,35 @@
 body,
 html {
     font-family: 'Raleway', sans-serif;
-    background-color: #000;
     color: #fff;
     overflow-x: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#gradient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(45deg, #000000, #0000ff, #ffb6c1);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 #canvas-container {
@@ -46,6 +72,7 @@ h2 {
     font-weight: 700;
     margin-bottom: 20px;
     transition: opacity 1s ease;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 p {
@@ -53,20 +80,22 @@ p {
     max-width: 800px;
     margin-bottom: 30px;
     transition: opacity 1s ease;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .cta-button {
-    background: none;
+    background: rgba(255, 255, 255, 0.1);
     border: 2px solid #fff;
     color: #fff;
     padding: 15px 30px;
     font-size: 1.5vw;
     cursor: pointer;
     transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
 }
 
 .cta-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 #navigation {
@@ -77,9 +106,9 @@ p {
     gap: 20px;
     z-index: 100;
     background: rgba(0, 0, 0, 0.7);
-    /* Background with opacity */
     padding: 10px 20px;
     border-radius: 10px;
+    backdrop-filter: blur(5px);
 }
 
 .nav-item {
@@ -104,13 +133,15 @@ p {
 }
 
 .feature-box {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(73, 171, 217, 0.3);
     border-radius: 10px;
     padding: 20px;
     margin: 20px;
     width: 300px;
     opacity: 1;
     transform: translateY(0);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .feature-box h3 {
@@ -141,6 +172,10 @@ p {
     text-align: center;
     opacity: 1;
     transition: opacity 1s ease;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
 }
 
 .stat-number {
@@ -163,12 +198,13 @@ p {
 }
 
 .testimonial {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(73, 171, 217, 0.3);
     border-radius: 10px;
     padding: 20px;
     opacity: 1;
     transform: translateX(0);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .testimonial:hover {
@@ -212,9 +248,6 @@ p {
     .testimonial:nth-child(n) {
         grid-column: 1;
     }
-}
-
-@media (max-width: 768px) {
 
     h1,
     h2 {

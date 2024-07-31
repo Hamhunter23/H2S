@@ -1,12 +1,12 @@
 "use client"
 import React, { useState } from 'react';
-import axios from 'axios';
 import Papa from 'papaparse';
-import { read, utils as xlsxUtils, writeFileXLSX } from 'xlsx';
+import { read, utils as xlsxUtils } from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code, CloudLightning } from "lucide-react";
+import Groq from "groq-sdk";
 
 interface LearningResource {
   topic: string;
@@ -62,7 +62,6 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
     <p className="text-gray-400">{description}</p>
   </motion.div>
 );
-
 const LearningComponent: React.FC = () => {
   const [learningGoal, setLearningGoal] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -113,42 +112,45 @@ const LearningComponent: React.FC = () => {
       console.log(userPrompt);
       console.log(systemPrompt);
     
-      const response = await axios.post('http://localhost:11434/api/generate', {
-        model: "llama3:8b",
-        prompt: `${systemPrompt}\n\nUser: ${userPrompt}`,
-        stream: false
-      });
-    
-      const relevantLines = response.data.response.trim().split('\n');
-    
-      // Find the indices of the first and second empty lines
-      let firstEmptyLineIndex = -1;
-      let secondEmptyLineIndex = -1;
-      for (let i = 0; i < relevantLines.length; i++) {
-        if (relevantLines[i].trim() === '') {
-          if (firstEmptyLineIndex === -1) {
-            firstEmptyLineIndex = i;
-          } else {
-            secondEmptyLineIndex = i;
-            break;
+      const groq = new Groq({ apiKey: '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',dangerouslyAllowBrowser: true });
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: userPrompt
           }
-        }
-      }
-    
-      // Slice the array based on the empty line indices
-      let filteredLines = relevantLines;
-      if (firstEmptyLineIndex !== -1) {
-        filteredLines = relevantLines.slice(firstEmptyLineIndex + 1);
-      }
-      if (secondEmptyLineIndex !== -1) {
-        filteredLines = filteredLines.slice(0, secondEmptyLineIndex - firstEmptyLineIndex - 1);
-      }
-    
-      const relevantData = filteredLines.map((line: string) => {
-        const [topic, title] = line.split(',');
-        return { topic, title } as LearningResource;
+        ],
+        model: "llama3-groq-70b-8192-tool-use-preview",
+        temperature: 0.5,
+        max_tokens: 8192,
+        top_p: 0.65,
+        stream: false,
+        stop: null
       });
+
+      console.log("groq req sent", chatCompletion);
+
+      const response = chatCompletion.choices[0]?.message?.content;
+
+      if (!response) {
+        throw new Error("No response received from the API");
+      }
     
+      const relevantLines = response.trim().split('\n');
+    
+      const relevantData = relevantLines.map((line: string) => {
+        const [topic, title] = line.split(',').map(item => item.trim());
+        return { topic, title } as LearningResource;
+      }).filter(item => item.topic && item.title); // Filter out any items with empty topic or title
+    
+      if (relevantData.length === 0) {
+        throw new Error("No relevant data found in the API response");
+      }
+
       // Generate and download CSV using PapaParse
       const csv = Papa.unparse(relevantData, { header: true });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -162,13 +164,12 @@ const LearningComponent: React.FC = () => {
     
       setResult(relevantData);
     } catch (err) {
-      setError("An error occurred while processing your request.");
+      setError(err instanceof Error ? err.message : "An unknown error occurred while processing your request.");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
@@ -242,20 +243,22 @@ const LearningComponent: React.FC = () => {
                     title="Be more Self-Aware"
                     description="Also let us know what you DO NOT know too, so that we cover them up to. ;)"
                   />
-                  <FeatureCard 
+                   <FeatureCard 
                     icon={<BookOpen size={40} />}
-                    title="Break Down the Learning"
-                    description="Divide your learning goal into smaller, manageable topics."
+                    title="Structured Learning"
+                    description="Organize your learning journey with a personalized roadmap and step-by-step guidance."
                   />
+
                   <FeatureCard 
                     icon={<Rocket size={40} />}
-                    title="Stay Consistent"
-                    description="Consistency is key to achieving your learning goals."
+                    title="Accelerated Progress"
+                    description="Learn faster and more efficiently with targeted exercises and optimized learning strategies."
                   />
+
                   <FeatureCard 
-                    icon={<CloudLightning size={40} />}
-                    title="Stay Consistent"
-                    description="Consistency is key to achieving your learning goals."
+                    icon={<Award size={40} />}
+                    title="Achievement Recognition"
+                    description="Track your progress and celebrate milestones, motivating you to keep learning and growing."
                   />
                 </div>
               </motion.div>
