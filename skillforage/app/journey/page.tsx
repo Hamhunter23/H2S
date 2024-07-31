@@ -363,7 +363,7 @@ const Journey = () => {
 
     return (
         <div className="journey-container" style={{ height: '100vh', overflow: 'hidden' }}>
-            {isOptionsModalVisible && (
+            {isOptionsModalVisible && (<div className="h-full w-full z-5 glass">
                 <OptionsModal
                     options={optionsState}
                     nextModule={nextModuleState}
@@ -372,6 +372,7 @@ const Journey = () => {
                     details={details}
                     selectHandle={moduleSelectHandle}
                 />
+            </div>
             )}
             {isModalVisible && <Modal details={detailState} />}
             <div className="flex relative h-full">

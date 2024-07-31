@@ -46,7 +46,7 @@ const OptionsModal: React.FC<OptionsModalProps> = ({ options, nextModule, module
 
     return (
         <div className="w-full flex flex-col items-center justify-center">
-            <div className="fixed top-1/4 z-10 w-3/5 h-3/5 overflow-auto rounded-xl glass">
+            <div className="fixed top-1/4 z-10 w-3/5 h-3/5 overflow-auto rounded-xl bg-green-500">
                 <span className="text-black float-right text-4xl font-bold hover:text-white hover:no-underline hover:cursor-pointer focus:text-white focus:no-underline focus:cursor-pointer closeOption -translate-x-3">
                     &times;
                 </span>
