@@ -105,12 +105,12 @@ const HomePage = () => {
       <div id="progress-bar"></div>
       <section id="home" className="section">
         <h1 id="main-title">SkillForge</h1>
-        <p id="subtitle">Revolutionizing learning through AI-driven personalization and blockchain certification</p>
+        <p id="subtitle">Revolutionizing learning through AI-driven personalization and project based certification</p>
         <button className="cta-button" onClick={() => window.location.href = 'http://localhost:3000/createCourse'}>Embark on Your Journey</button>
       </section>
       <section id="about" className="section">
         <h2>Redefine Your Learning</h2>
-        <p>SkillForge employs cutting-edge AI to create a learning experience as unique as you are. Our platform adapts to your learning style, pace, and goals, ensuring maximum efficiency and engagement.</p>
+        <p>SkillForge employs cutting-edge AI to create a learning experience as unique as you are. Our platform curates a course tailored to your learning needs in just a minute. Good-Bye to all the previous hassle that you'd have to go through to find resources to study from.</p>
       </section>
       <section id="features" className="section">
         <h2>Future-Proof Skills</h2>
