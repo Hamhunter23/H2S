@@ -319,11 +319,6 @@ const Journey = () => {
             ></iframe>
         );
     }
-    // const callback = (videoUrl: string) => {
-    //     const result = youtubeEmbed(videoUrl);
-    //     setTimeout(() => {}, 1800);
-    //     return result;
-    // }
 
     useEffect(() => {
         const span = document.querySelector(".close") as HTMLElement;
@@ -374,7 +369,9 @@ const Journey = () => {
                 />
             </div>
             )}
-            {isModalVisible && <Modal details={detailState} />}
+            {isModalVisible && <div className="h-full w-full fixed z-10 glass">
+                <Modal details={detailState} />
+            </div>}
             <div className="flex relative h-full">
                 <div id="module-container" ref={moduleContainerRef} className={`flex-grow overflow-y-auto h-full py-8   ${learnState ? "move" : ""}`} >
                     <div className="flex flex-col-reverse items-center justify-center overflow-x-hidden relative w-full min-h-full" style={{ overflowY: 'auto' }}>
