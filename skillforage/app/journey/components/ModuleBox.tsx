@@ -12,7 +12,7 @@ interface ModuleProps {
 
 const Module: React.FC<ModuleProps> = ({ name, select, start, selectHandle, details }) => {
     return (
-        <div className="flex flex-col gap-1.5 px-10 py-6 items-center justify-center bg-gray-50 rounded-2xl w-64 h-40 relative m-5">
+        <div className="flex flex-col gap-1.5 px-10 py-6 items-center justify-center bg-gray-50 rounded-2xl w-64 h-40 relative m-5 shadow-custom">
             <p className="text-gray-800 text-lg font-semibold text-center">{name}</p>
             <button
                 className="w-full bg-blue-500 py-2 px-4 rounded hover:bg-blue-700"

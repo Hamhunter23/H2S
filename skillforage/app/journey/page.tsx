@@ -221,7 +221,7 @@ const Journey = () => {
     };
 
     const details = (details: string) => {
-        setDetails(details || "No Details Found!");
+        setDetails(details || "Python ZERO TO HERO");
         setIsModalVisible(true);
     };
 
