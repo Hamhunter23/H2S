@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
 
-const Modal = ({ details }) => {
+interface ModalProps {
+    details: string;
+}
+
+const Modal:React.FC<ModalProps> = ({ details }) => {
     useEffect(() => {
         const detailsElement = document.getElementById('details');
         if (detailsElement) {

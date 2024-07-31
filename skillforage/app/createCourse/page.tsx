@@ -1,12 +1,12 @@
 "use client"
 import React, { useState } from 'react';
-import axios from 'axios';
 import Papa from 'papaparse';
-import { read, utils as xlsxUtils, writeFileXLSX } from 'xlsx';
+import { read, utils as xlsxUtils } from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code } from "lucide-react";
+import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code, CloudLightning } from "lucide-react";
+import Groq from "groq-sdk";
 
 interface LearningResource {
   topic: string;
@@ -62,7 +62,6 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
     <p className="text-gray-400">{description}</p>
   </motion.div>
 );
-
 const LearningComponent: React.FC = () => {
   const [learningGoal, setLearningGoal] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -82,49 +81,76 @@ const LearningComponent: React.FC = () => {
       const dataWorkbook = read(fileContent, { type: 'string' });
       const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
       const dataArray = xlsxUtils.sheet_to_json<LearningResource>(dataSheet, { header: 1 });
-    
-      const systemPrompt = "Analyze the provided CSV data to extract only the rows that are most relevant to the user's learning goal. Return the results formatted as 'topic', 'title'. Ensure the rows are in increasing order of skill requirement. Do not include any introductory text, explanations, or additional comments. Provide only the filtered data. Don't add any special characters to the output.";
-      const userPrompt = `Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => row.join(',')).join('\n')}`;
+        
+      const systemPrompt = `You are a professional Course Designer with expertise in curriculum development and instructional design. Your task is to create a well-structured, logical course outline based on the provided CSV data and the user's learning goals.
+
+        Follow these guidelines:
+        1. Assume the USER has zero knowledge about the domain unless they specify otherwise.
+        2. Analyze the provided CSV data to extract rows relevant to the user's learning/upskilling goal.
+        3. Include foundational topics necessary for understanding more advanced concepts.
+        4. Ensure a logical progression of topics, starting with the most basic and building up to more complex subjects.
+        5. If a subtopic is included, ensure its parent topic or a relevant prerequisite is also part of the course structure.
+        6. Order the topics in increasing complexity, considering dependencies between topics.
+
+        Output format:
+        - Return only the relevant CSV row entries in 'topic', 'title' format.
+        - Ensure the rows are in increasing order of skill requirement or complexity.
+        - Do not include any introductory text, explanations, or additional comments.
+        - Provide only the filtered data without any special characters.
+
+        Example output:
+        'Introduction to Programming', 'What is Programming?'
+        'Introduction to Programming', 'Basic Programming Concepts'
+        'Variables and Data Types', 'Understanding Variables'
+        'Variables and Data Types', 'Common Data Types'
+        'Control Structures', 'If-Else Statements'
+        'Control Structures', 'Loops in Programming'
+
+        Ensure the course structure is comprehensive, well-organized, and tailored to the user's specific learning goals while maintaining the simple 'topic', 'title' output format.`;
+      const userPrompt = `USER's Learning Goal: ${learningGoal}\n\nCSV Data:\n${dataArray.map(row => row.join(',')).join('\n')}`;
     
       console.log(userPrompt);
       console.log(systemPrompt);
     
-      const response = await axios.post('http://localhost:11434/api/generate', {
-        model: "llama3:8b",
-        prompt: `${systemPrompt}\n\nUser: ${userPrompt}`,
-        stream: false
-      });
-    
-      const relevantLines = response.data.response.trim().split('\n');
-    
-      // Find the indices of the first and second empty lines
-      let firstEmptyLineIndex = -1;
-      let secondEmptyLineIndex = -1;
-      for (let i = 0; i < relevantLines.length; i++) {
-        if (relevantLines[i].trim() === '') {
-          if (firstEmptyLineIndex === -1) {
-            firstEmptyLineIndex = i;
-          } else {
-            secondEmptyLineIndex = i;
-            break;
+      const groq = new Groq({ apiKey: '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',dangerouslyAllowBrowser: true });
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: userPrompt
           }
-        }
-      }
-    
-      // Slice the array based on the empty line indices
-      let filteredLines = relevantLines;
-      if (firstEmptyLineIndex !== -1) {
-        filteredLines = relevantLines.slice(firstEmptyLineIndex + 1);
-      }
-      if (secondEmptyLineIndex !== -1) {
-        filteredLines = filteredLines.slice(0, secondEmptyLineIndex - firstEmptyLineIndex - 1);
-      }
-    
-      const relevantData = filteredLines.map((line: string) => {
-        const [topic, title] = line.split(',');
-        return { topic, title } as LearningResource;
+        ],
+        model: "llama3-groq-70b-8192-tool-use-preview",
+        temperature: 0.5,
+        max_tokens: 8192,
+        top_p: 0.65,
+        stream: false,
+        stop: null
       });
+
+      console.log("groq req sent", chatCompletion);
+
+      const response = chatCompletion.choices[0]?.message?.content;
+
+      if (!response) {
+        throw new Error("No response received from the API");
+      }
     
+      const relevantLines = response.trim().split('\n');
+    
+      const relevantData = relevantLines.map((line: string) => {
+        const [topic, title] = line.split(',').map(item => item.trim());
+        return { topic, title } as LearningResource;
+      }).filter(item => item.topic && item.title); // Filter out any items with empty topic or title
+    
+      if (relevantData.length === 0) {
+        throw new Error("No relevant data found in the API response");
+      }
+
       // Generate and download CSV using PapaParse
       const csv = Papa.unparse(relevantData, { header: true });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -138,13 +164,12 @@ const LearningComponent: React.FC = () => {
     
       setResult(relevantData);
     } catch (err) {
-      setError("An error occurred while processing your request.");
+      setError(err instanceof Error ? err.message : "An unknown error occurred while processing your request.");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
@@ -218,15 +243,22 @@ const LearningComponent: React.FC = () => {
                     title="Be more Self-Aware"
                     description="Also let us know what you DO NOT know too, so that we cover them up to. ;)"
                   />
-                  <FeatureCard 
+                   <FeatureCard 
                     icon={<BookOpen size={40} />}
-                    title="Break Down the Learning"
-                    description="Divide your learning goal into smaller, manageable topics."
+                    title="Structured Learning"
+                    description="Organize your learning journey with a personalized roadmap and step-by-step guidance."
                   />
+
                   <FeatureCard 
                     icon={<Rocket size={40} />}
-                    title="Stay Consistent"
-                    description="Consistency is key to achieving your learning goals."
+                    title="Accelerated Progress"
+                    description="Learn faster and more efficiently with targeted exercises and optimized learning strategies."
+                  />
+
+                  <FeatureCard 
+                    icon={<Award size={40} />}
+                    title="Achievement Recognition"
+                    description="Track your progress and celebrate milestones, motivating you to keep learning and growing."
                   />
                 </div>
               </motion.div>
