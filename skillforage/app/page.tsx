@@ -42,9 +42,24 @@ const HomePage = () => {
 
     window.addEventListener('scroll', handleScroll);
 
+    const gradientElement = document.getElementById('gradient-bg');
+    let gradientAngle = 0;
+
+    function animateGradient() {
+      gradientAngle = (gradientAngle + 0.3) % 360;
+      if (gradientElement) {
+        gradientElement.style.background = `linear-gradient(${gradientAngle}deg, #000000, #0800fe, #9900d9)`;
+      }
+      requestAnimationFrame(animateGradient);
+    }
+
+    animateGradient();
+
     const handleNavClick = (event: Event) => {
       const targetId = (event.target as HTMLElement).dataset.section;
+      console.log(targetId);
       const targetSection = targetId ? document.getElementById(targetId) : null;
+      console.log(targetSection);
       if (targetSection) {
         window.scrollTo({
           top: targetSection.offsetTop,
@@ -67,6 +82,14 @@ const HomePage = () => {
 
   return (
     <div>
+      <div id="gradient-bg" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+      }} />
       <meta charSet="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>SkillForge - Redefining Learning</title>
@@ -109,15 +132,15 @@ const HomePage = () => {
       <section id="stats" className="section">
         <h2>Our Impact</h2>
         <div className="stats-container">
-          <div className="stat-item">
+          <div>
             <div className="stat-number">12000</div>
             <div className="stat-label">Active Learners</div>
           </div>
-          <div className="stat-item">
+          <div>
             <div className="stat-number">∞</div>
             <div className="stat-label">Courses</div>
           </div>
-          <div className="stat-item">
+          <div>
             <div className="stat-number">5000</div>
             <div className="stat-label">Certificates Issued</div>
           </div>
