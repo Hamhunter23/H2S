@@ -243,6 +243,23 @@ const LearningComponent: React.FC = () => {
                     title="Be more Self-Aware"
                     description="Also let us know what you DO NOT know too, so that we cover them up to. ;)"
                   />
+                   <FeatureCard 
+                    icon={<BookOpen size={40} />}
+                    title="Structured Learning"
+                    description="Organize your learning journey with a personalized roadmap and step-by-step guidance."
+                  />
+
+                  <FeatureCard 
+                    icon={<Rocket size={40} />}
+                    title="Accelerated Progress"
+                    description="Learn faster and more efficiently with targeted exercises and optimized learning strategies."
+                  />
+
+                  <FeatureCard 
+                    icon={<Award size={40} />}
+                    title="Achievement Recognition"
+                    description="Track your progress and celebrate milestones, motivating you to keep learning and growing."
+                  />
                 </div>
               </motion.div>
             )}
