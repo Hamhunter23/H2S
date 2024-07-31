@@ -1,8 +1,10 @@
 "use client"
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './homepage.css'
 
 const HomePage = () => {
+  const [prevScrollPos, setPrevScrollPos] = useState(0);
+  const [visible, setVisible] = useState(true);
   useEffect(() => {
     // JavaScript code to handle animations and other effects
     const sections = document.querySelectorAll('.section');
@@ -32,6 +34,12 @@ const HomePage = () => {
     });
 
     const handleScroll = () => {
+      const currentScrollPos = window.pageYOffset;
+      const visible = prevScrollPos > currentScrollPos;
+
+      setVisible(visible);
+      setPrevScrollPos(currentScrollPos);
+
       if (progressBar) {
         const scrollY = window.scrollY;
         const scrollHeight = document.body.scrollHeight - window.innerHeight;
@@ -78,7 +86,7 @@ const HomePage = () => {
         item.removeEventListener('click', handleNavClick);
       });
     };
-  }, []);
+  }, [prevScrollPos, visible]);
 
   return (
     <div>
@@ -95,13 +103,6 @@ const HomePage = () => {
       <title>SkillForge - Redefining Learning</title>
       <div id="canvas-container" />
       <div id="cursor" />
-      <nav id="navigation">
-        <div className="nav-item" data-section="home">Home</div>
-        <div className="nav-item" data-section="about">About</div>
-        <div className="nav-item" data-section="features">Features</div>
-        <div className="nav-item" data-section="stats">Stats</div>
-        <div className="nav-item" data-section="testimonials">Testimonials</div>
-      </nav>
       <div id="progress-bar"></div>
       <section id="home" className="section">
         <h1 id="main-title">SkillForge</h1>

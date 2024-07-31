@@ -46,16 +46,16 @@ const OptionsModal: React.FC<OptionsModalProps> = ({ options, nextModule, module
 
     return (
         <div className="w-full flex flex-col items-center justify-center">
-            <div className="fixed top-1/4 z-10 w-3/5 h-3/5 overflow-auto bg-green-500 rounded-xl">
-                <span className="text-black float-right text-3xl font-bold hover:text-white hover:no-underline hover:cursor-pointer focus:text-white focus:no-underline focus:cursor-pointer closeOption">
+            <div className="fixed top-1/4 z-10 w-3/5 h-3/5 overflow-auto rounded-xl glass">
+                <span className="text-black float-right text-4xl font-bold hover:text-white hover:no-underline hover:cursor-pointer focus:text-white focus:no-underline focus:cursor-pointer closeOption -translate-x-3">
                     &times;
                 </span>
                 <div className="flex flex-col items-center">
-                    <h1 className="text-black text-lg font-bold">Continue your Journey</h1>
+                    <h1 className="text-white font-bold text-4xl translate-y-2 m-3">Continue your Journey</h1>
                     {renderNextModule && renderModule(renderNextModule)}
                 </div>
                 <div className="flex flex-col items-center">
-                    <h1 className="text-black text-lg font-bold">Suggested</h1>
+                    <h1 className="text-white font-bold text-4xl translate-y-2">Suggested:</h1>
                     <div id="options" className="flex flex-wrap w-full justify-center">
                         {renderedModules.map(renderModule)}
                     </div>
