@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Info } from 'lucide-react';
 import Modal from './components/Modal'
 import Module from './components/ModuleBox';
 import Content from './components/ContentBox';
 import ChooseModule from './components/ChooseModule';
 import OptionsModal from "./components/OptionsModal";
 import './journey_style.css';
-import { strict } from "assert";
 
 interface Module {
     moduleName: string;
