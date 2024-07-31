@@ -8,34 +8,47 @@ import Content from './components/ContentBox';
 import ChooseModule from './components/ChooseModule';
 import OptionsModal from "./components/OptionsModal";
 import './journey_style.css';
+import { strict } from "assert";
 
+interface Module {
+    moduleName: string;
+    details: string;
+    content: string[];
+    url: string[];
+    nextModule: string;
+    options: string[];
+}
 
 const modules = [
     {
         moduleName: "Module1",
         details: "This is Module1",
-        content: ["Content1", "Content2", "Content3", "Content4"],
+        content: ["Content1", "Content2", "Content3"],
+        url: [],
         nextModule: "Module2",
         options: ["Option1", "Option2", "Option3", "Option4"],
     },
     {
         moduleName: "Module2",
-        details: "This is Module2.1",
-        content: ["Content1", "Content2", "Content3", "Content4"],
+        details: "This is Module2",
+        content: ["Content1", "Content2", "Content3"],
+        url: [],
         nextModule: "Module3",
-        options: ["Option1", "Option2"],
+        options: ["Option1", "Option2", "Option3", "Option4"],
     },
     {
         moduleName: "Module3",
-        details: "This is Module2.2",
+        details: "This is Module3",
         content: ["Content1", "Content2", "Content3"],
-        nextModule: "Module3",
-        options: ["Option1", "Option2", "Option3"],
+        url: [],
+        nextModule: "Module1",
+        options: ["Option1", "Option2", "Option3", "Option4"],
     },
     {
         moduleName: "Option1",
         details: "This is Option1",
         content: ["Content1", "Content2", "Content3"],
+        url: [],
         nextModule: "Option2",
         options: [],
     },
@@ -43,6 +56,7 @@ const modules = [
         moduleName: "Option2",
         details: "This is Option2",
         content: ["Content1", "Content2", "Content3"],
+        url: [],
         nextModule: "Option3",
         options: [],
     },
@@ -50,6 +64,7 @@ const modules = [
         moduleName: "Option3",
         details: "This is Option3",
         content: ["Content1", "Content2", "Content3"],
+        url: [],
         nextModule: "",
         options: [],
     },
@@ -57,6 +72,7 @@ const modules = [
         moduleName: "Option4",
         details: "This is Option4",
         content: ["Content1", "Content2", "Content3"],
+        url: [],
         nextModule: "",
         options: [],
     }
@@ -103,7 +119,47 @@ class LinkedList<T> {
     }
 }
 
+async function fetchData() {
+    let modules = [];
+
+    try {
+        const datasetResponse = await fetch("/api/read-csv?filename=data.csv");
+        const datasetData = await datasetResponse.json();
+        const datasetCsvData = datasetData;
+
+        const outputResponse = await fetch("/api/read-csv?filename=output.csv");
+        const outputData = await outputResponse.json();
+        const outputCsvData = outputData;
+
+        const resourceObjs = outputCsvData.map((output: any) => {
+            return datasetCsvData.find((obj: any) => obj.title === output.title);
+        });
+
+        let j = 0;
+        let currentModule = "";
+        for (let i = 0; i < resourceObjs.length; i++) {
+            const obj = resourceObjs[i];
+            if (obj.topic !== currentModule) {
+                currentModule = obj.topic;
+                const newObj = { moduleName: obj.topic, details: "", content: [obj.title], url: [obj.url], nextModule: "", options: [] };
+                if (j > 0) {
+                    modules[j - 1].nextModule = newObj.moduleName;
+                }
+                modules[j++] = newObj;
+            } else {
+                modules[j - 1].content.push(obj.title);
+                modules[j - 1].url.push(obj.url);
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching CSV data:', err);
+    }
+
+    return modules;
+}
+
 const Journey = () => {
+    const [newModules, setModules] = useState<{ moduleName: string; details: string; content: string[]; url: string[]; nextModule: string; options: string[]; }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [detailState, setDetails] = useState('');
     const [visibleStates, setVisibleStates] = useState<{ [key: string]: boolean }>({});
@@ -112,16 +168,49 @@ const Journey = () => {
     const [nextModuleState, setNextModuleState] = useState('');
     const [currentModuleState, setCurrentModuleState] = useState('');
     const [learnState, setLearnState] = useState(false);
-
-    const [renderedModules, setRenderedModules] = useState(() => {
-        const initialLinkedList = new LinkedList<any>();
-        initialLinkedList.add(modules[0]);
-        return initialLinkedList;
-    });
+    const [isLoading, setIsLoading] = useState(true);
+    const [renderedModules, setRenderedModules] = useState<LinkedList<Module>>(() => new LinkedList());
+    const [contentState, setContentState] = useState('');
 
     const moduleContainerRef = useRef(null);
     const lastModuleRef = useRef(null);
+    const hasFetched = useRef(false);
 
+    useEffect(() => {
+        if (hasFetched.current) return;
+        hasFetched.current = true;
+
+        async function loadModules() {
+            setIsLoading(true);
+            try {
+                const modulesData = await fetchData();
+                if (modulesData && modulesData.length > 0) {
+                    setModules(modulesData);
+                } else {
+                    setModules(modules);
+                }
+            } catch (error) {
+                console.error("Error fetching modules:", error);
+                setModules(modules);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        loadModules();
+    }, []);
+
+    useEffect(() => {
+        if (!isLoading && newModules.length > 0) {
+            console.log(newModules);
+            setRenderedModules(() => {
+                const newList = new LinkedList<Module>();
+                newList.add(newModules[0]);
+                return newList;
+            });
+            setCurrentModuleState(newModules[0].moduleName);
+        }
+    }, [isLoading, newModules]);
 
     const start = (moduleName: string) => {
         setVisibleStates((prevStates) => ({
@@ -164,7 +253,7 @@ const Journey = () => {
             const newModules = new LinkedList<any>();
             let current = prevModules.head;
 
-            while (current && current.value.moduleName !== currentModuleState) {
+            while (current && (current.value as Module).moduleName !== currentModuleState) {
                 newModules.add(current.value);
                 current = current.next;
             }
@@ -186,19 +275,20 @@ const Journey = () => {
     };
 
 
-    const learn = () => {
+    const learn = (url: string) => {
         setLearnState(true);
+        setContentState(url);
     }
 
-    const renderModules = (module: any) => (
+    const renderModules = (module: Module) => (
         <div key={module.moduleName} id={module.moduleName} className="flex flex-col items-center relative pathway">
             {visibleStates[module.moduleName] && (
                 <div className={`container-content flex flex-col-reverse items-center ${visibleStates[module.moduleName] ? 'visible' : ''}`}>
-                    {module.content.map((content: string, i: number) => (
-                        <Content key={i} title={content} learn={learn} />
+                    {module.content.map((title: string, i: number) => (
+                        <Content key={i} title={title} learn={() => learn(module.url[i])} />
                     ))}
-                    {(module.options.length !== 0) && <ChooseModule choose={() => choose(module.options, module.nextModule, module.moduleName)} />}
-                    {module.options.length === 0 && module.nextModule !== "" && renderModules(module.nextModule)}
+                    {(module.options.length !== 0 || module.nextModule !== "") && <ChooseModule choose={() => choose(module.options, module.nextModule, module.moduleName)} />}
+                    {/* {module.options.length === 0 && module.nextModule !== "" && renderModules(module.nextModule)} */}
                 </div>
             )}
             <Module
@@ -210,6 +300,32 @@ const Journey = () => {
             />
         </div>
     );
+
+    const youtubeEmbed = (videoUrl: string) => {
+        let videoId
+        if (videoUrl.includes('v=')) {
+            videoId = videoUrl.split('v=')[1];
+        } else {
+            const urlObj = new URL(videoUrl);
+            videoId = urlObj.pathname.slice(1);
+        }
+        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+
+        return (
+            <iframe
+                className="w-full h-full rounded-2xl px-2 py-2 youtube-embed"
+                src={embedUrl}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Youtube Video"
+            ></iframe>
+        );
+    }
+    // const callback = (videoUrl: string) => {
+    //     const result = youtubeEmbed(videoUrl);
+    //     setTimeout(() => {}, 1800);
+    //     return result;
+    // }
 
     useEffect(() => {
         const span = document.querySelector(".close") as HTMLElement;
@@ -253,7 +369,7 @@ const Journey = () => {
                 <OptionsModal
                     options={optionsState}
                     nextModule={nextModuleState}
-                    modules={modules}
+                    modules={newModules}
                     start={start}
                     details={details}
                     selectHandle={moduleSelectHandle}
@@ -275,8 +391,8 @@ const Journey = () => {
                         <p className="text-sm text-gray-600">Module 1 &gt; Content 1</p>
                     </header>}
                     {learnState && <div className="bg-white shadow-xl rounded-2xl w-fill my-6 mx-4 relative h-full">
-                        <div className="flex flex-col justify-center items-center h-full">
-                            <h1 className="text-black font-bold">Content Goes Here</h1>
+                        <div className="flex flex-col justify-center items-center h-full overflow-hidden w-full">
+                            {youtubeEmbed(contentState)}
                         </div>
                     </div>}
                     {learnState && <footer className="bg-white p-4">
