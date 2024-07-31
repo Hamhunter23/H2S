@@ -8,7 +8,7 @@ interface ContentBoxProps {
 const Content: React.FC<ContentBoxProps> = ({ title, learn }) => {
   return (
     <div
-      className="flex flex-col gap-1.5 items-center justify-center rounded-full w-44 h-44 relative m-5"
+      className="flex flex-col gap-1.5 items-center justify-center rounded-full w-44 h-44 relative m-5 shadow-custom"
       style={{
         background: "linear-gradient(45deg,#E0A9BB,#8338E3)",
       }}
