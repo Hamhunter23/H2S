@@ -4,8 +4,8 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { Account, User as AuthUser } from 'next-auth';
 import bcrypt from 'bcryptjs';
-import User from '@/app/models/user';
-import connect from '@/utils/db';
+import User from '../../../models/User';
+import connect from '../../../../utils/db';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,17 +16,20 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials: { email: string; password: string } | undefined) {
+        if (!credentials) {
+          return null;
+        }
         await connect();
         try {
-          const user = await User.findOne({ email: credentials.email });
-          if (user) {
+          const user = await User.findOne({ email: credentials.email }).lean();
+          if (user && user.password) {
             const isPasswordCorrect = await bcrypt.compare(
               credentials.password,
               user.password
             );
             if (isPasswordCorrect) {
-              return user;
+              return { id: user._id.toString(), email: user.email } as AuthUser;
             }
           }
         } catch (err: any) {
