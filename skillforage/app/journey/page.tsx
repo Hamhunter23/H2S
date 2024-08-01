@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import Modal from './components/Modal'
 import Module from './components/ModuleBox';
 import Content from './components/ContentBox';
 import ChooseModule from './components/ChooseModule';
 import OptionsModal from "./components/OptionsModal";
+import YouTubeEmbed from "./components/YoutubeEmbed";
 import './journey_style.css';
+import getTotalVideoLength from "@/public/scripts/videoDetails";
 
 interface Module {
     moduleName: string;
@@ -156,6 +158,10 @@ async function fetchData() {
     return modules;
 }
 
+interface VideoProgress {
+    [videoId: string]: number;
+}
+
 const Journey = () => {
     const [newModules, setModules] = useState<{ moduleName: string; details: string; content: string[]; url: string[]; nextModule: string; options: string[]; }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -165,12 +171,18 @@ const Journey = () => {
     const [optionsState, setOptionsState] = useState<any[]>([]);
     const [nextModuleState, setNextModuleState] = useState('');
     const [currentModuleState, setCurrentModuleState] = useState('');
+    const [currentClickedModule, setCurrentClickedModule] = useState('');
+    const [currentContentName, setCurrentContentName] = useState('Content Name');
     const [learnState, setLearnState] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [renderedModules, setRenderedModules] = useState<LinkedList<Module>>(() => new LinkedList());
     const [contentState, setContentState] = useState('');
+    const [totalLength, setTotalLength] = useState(0);
+    const [videoProgress, setVideoProgress] = useState<VideoProgress>({});
+    const [totalWatchTime, setTotalWatchTime] = useState(0);
+    const [progressValue, setProgressValue] = useState(0);
 
-    const moduleContainerRef = useRef(null);
+
     const lastModuleRef = useRef(null);
     const hasFetched = useRef(false);
 
@@ -200,7 +212,6 @@ const Journey = () => {
 
     useEffect(() => {
         if (!isLoading && newModules.length > 0) {
-            console.log(newModules);
             setRenderedModules(() => {
                 const newList = new LinkedList<Module>();
                 newList.add(newModules[0]);
@@ -269,24 +280,38 @@ const Journey = () => {
             [selectedModule.moduleName]: false
         }));
 
+        setCurrentModuleState(selectedModule.moduleName);
+
         lastModuleRef.current = selectedModule.moduleName;
     };
 
 
-    const learn = (url: string) => {
-        setLearnState(true);
+    const learn = (url: string, content: string, moduleName:string) => {
         setContentState(url);
+        setCurrentClickedModule(moduleName);
+        setCurrentContentName(content);
+        setLearnState(true);
     }
+
+    const handleTimeUpdate = useCallback((videoId: string | null, time: number) => {
+        if (videoId) {
+            setVideoProgress(prev => {
+              const newProgress = { ...prev, [videoId]: time };
+              const newTotal = Object.values(newProgress).reduce((sum, curr) => sum + curr, 0);
+              setTotalWatchTime(newTotal);
+              return newProgress;
+            });
+        }
+      }, []);
 
     const renderModules = (module: Module) => (
         <div key={module.moduleName} id={module.moduleName} className="flex flex-col items-center relative pathway">
             {visibleStates[module.moduleName] && (
                 <div className={`container-content flex flex-col-reverse items-center ${visibleStates[module.moduleName] ? 'visible' : ''}`}>
                     {module.content.map((title: string, i: number) => (
-                        <Content key={i} title={title} learn={() => learn(module.url[i])} />
+                        <Content key={i} title={title} learn={() => learn(module.url[i], module.content[i], module.moduleName)} />
                     ))}
                     {(module.options.length !== 0 || module.nextModule !== "") && <ChooseModule choose={() => choose(module.options, module.nextModule, module.moduleName)} />}
-                    {/* {module.options.length === 0 && module.nextModule !== "" && renderModules(module.nextModule)} */}
                 </div>
             )}
             <Module
@@ -299,26 +324,6 @@ const Journey = () => {
         </div>
     );
 
-    const youtubeEmbed = (videoUrl: string) => {
-        let videoId
-        if (videoUrl.includes('v=')) {
-            videoId = videoUrl.split('v=')[1];
-        } else {
-            const urlObj = new URL(videoUrl);
-            videoId = urlObj.pathname.slice(1);
-        }
-        const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-
-        return (
-            <iframe
-                className="w-full h-full rounded-2xl px-2 py-2 youtube-embed"
-                src={embedUrl}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="Youtube Video"
-            ></iframe>
-        );
-    }
 
     useEffect(() => {
         const span = document.querySelector(".close") as HTMLElement;
@@ -356,6 +361,20 @@ const Journey = () => {
         }
     }, [renderedModules]);
 
+    useEffect(() => {
+        if (newModules.length > 0) {
+            const moduleObj = newModules.find((obj) => (obj.moduleName === currentModuleState));
+            getTotalVideoLength(moduleObj?.url).then((totalLength) => { setTotalLength(totalLength) });
+        }
+    }, [currentModuleState]);
+
+    useEffect(() => {
+        const value = Math.round((totalWatchTime / totalLength) * 100);
+        setProgressValue(value)
+        console.log(progressValue);
+    }, [totalWatchTime]);
+
+
     return (
         <div className="journey-container" style={{ height: '100vh', overflow: 'hidden' }}>
             {isOptionsModalVisible && (<div className="h-full w-full fixed z-10 glass">
@@ -373,7 +392,7 @@ const Journey = () => {
                 <Modal details={detailState} />
             </div>}
             <div className="flex relative h-full">
-                <div id="module-container" ref={moduleContainerRef} className={`flex-grow overflow-y-auto h-full py-8   ${learnState ? "move" : ""}`} >
+                <div id="module-container" className={`flex-grow overflow-y-auto h-full py-8   ${learnState ? "move" : ""}`} >
                     <div className="flex flex-col-reverse items-center justify-center overflow-x-hidden relative w-full min-h-full" style={{ overflowY: 'auto' }}>
                         {renderedModules.toArray().map(renderModules)}
                     </div>
@@ -383,19 +402,19 @@ const Journey = () => {
                         <span className="text-white float-right text-4xl font-bold hover:text-red-700 hover:no-underline hover:cursor-pointer focus:text-red-700 focus:no-underline focus:cursor-pointer closeLearnBoard">
                             &times;
                         </span>
-                        <h1 className="text-2xl font-bold text-white">Content Heading</h1>
-                        <p className="text-sm text-white">Module 1 &gt; Content 1</p>
+                        <h1 className="text-2xl font-bold text-white">{currentContentName}</h1>
+                        <p className="text-sm text-white">{currentClickedModule} &gt; {currentContentName}</p>
                     </header>}
                     {learnState && <div className="glass shadow-xl rounded-2xl w-fill my-6 mx-4 relative h-full">
                         <div className="flex flex-col justify-center items-center h-full overflow-hidden w-full">
-                            {youtubeEmbed(contentState)}
+                            <YouTubeEmbed videoUrl={contentState} onTimeUpdate={handleTimeUpdate} />
                         </div>
                     </div>}
                     {learnState && <footer className="bg-zinc-800 p-4">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-blue-600 h-2.5 rounded-full w-1/3"></div>
+                            <div className="bg-blue-600 h-2.5 rounded-full w-1/3" style={{ width: `${progressValue ? progressValue: 0}%` }}></div>
                         </div>
-                        <p className="text-sm text-white mt-2">Progress: 33%</p>
+                        <p className="text-sm text-white mt-2">Progress: {progressValue ? progressValue: 0} %</p>
                     </footer>}
                 </div>
             </div>

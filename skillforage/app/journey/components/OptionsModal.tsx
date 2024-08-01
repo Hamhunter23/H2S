@@ -21,15 +21,12 @@ interface OptionsModalProps {
 const OptionsModal: React.FC<OptionsModalProps> = ({ options, nextModule, modules, start, details, selectHandle }) => {
 
     const renderedModules = useMemo(() => {
-        console.log("Modules:", modules);
-        console.log("options:", options);
         return options
             .map(option => modules.find(module => module.moduleName === option))
             .filter((module) => module !== undefined);
     }, [options, modules]);
 
     const renderNextModule = useMemo(() => {
-        console.log("nextModule:", nextModule)
         return modules.find(module => module.moduleName === nextModule);
     }, [nextModule]);
 
