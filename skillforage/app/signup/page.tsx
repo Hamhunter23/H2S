@@ -83,7 +83,7 @@ const Signup = () => {
                 transition={{ duration: 0.5, delay: testimonial.id * 0.1 }}
                 className="bg-white bg-opacity-20 p-4 rounded-lg"
               >
-                <p className="text-white mb-2">"{testimonial.text}"</p>
+                <p className="text-white mb-2">&quot;{testimonial.text}&quot;</p>
                 <p className="text-white font-semibold">- {testimonial.author}</p>
               </motion.div>
             ))}

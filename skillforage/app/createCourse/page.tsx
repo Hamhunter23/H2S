@@ -5,7 +5,7 @@ import { read, utils as xlsxUtils } from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code, CloudLightning } from "lucide-react";
+import { Loader2, Search, Menu, BookOpen, Rocket, Award, Zap, Brain, Code } from "lucide-react";
 import Groq from "groq-sdk";
 
 interface LearningResource {
@@ -80,7 +80,7 @@ const LearningComponent: React.FC = () => {
     
       const dataWorkbook = read(fileContent, { type: 'string' });
       const dataSheet = dataWorkbook.Sheets[dataWorkbook.SheetNames[0]];
-      const dataArray = xlsxUtils.sheet_to_json<LearningResource>(dataSheet, { header: 1 });
+      const dataArray = xlsxUtils.sheet_to_json<string[]>(dataSheet, { header: 1 });
         
       const systemPrompt = `You are a professional Course Designer with expertise in curriculum development and instructional design. Your task is to create a well-structured, logical course outline based on the provided CSV data and the user's learning goals.
 

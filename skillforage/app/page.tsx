@@ -111,7 +111,7 @@ const HomePage = () => {
       </section>
       <section id="about" className="section">
         <h2>Redefine Your Learning</h2>
-        <p>SkillForge employs cutting-edge AI to create a learning experience as unique as you are. Our platform curates a course tailored to your learning needs in just a minute. Good-Bye to all the previous hassle that you'd have to go through to find resources to study from.</p>
+        <p>SkillForge employs cutting-edge AI to create a learning experience as unique as you are. Our platform curates a course tailored to your learning needs in just a minute. Good-Bye to all the previous hassle that you&apos;d have to go through to find resources to study from.</p>
       </section>
       <section id="features" className="section">
         <h2>Future-Proof Skills</h2>
