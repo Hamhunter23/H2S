@@ -1,8 +1,56 @@
 "use client";
-
-import Link from "next/link";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Signup = () => {
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    if (!isValidEmail(email)) {
+      setError('Email is invalid');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.status === 400) {
+        setError('User already exists');
+      } else if (res.status === 201) {
+        setError('');
+        router.push('/login');
+      } else {
+        const errorMessage = await res.text();
+        setError(errorMessage);
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again');
+      console.log(error);
+    }
+  };
+
+  
   return (
     <div>
     <div className="container">
@@ -33,7 +81,7 @@ const Signup = () => {
                 <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                   Create an account
                 </h1>
-                <form className="space-y-4 md:space-y-6" action="#">
+                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6" action="#">
                   <div>
                     <label
                       htmlFor="email"
@@ -113,6 +161,7 @@ const Signup = () => {
                   >
                     Create an account
                   </button>
+                  <p className="text-sm font-light text-red-500 dark:text-red-400">{error && error}</p>
                   <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                     Already have an account?{" "}
                     
