@@ -286,7 +286,7 @@ const Journey = () => {
     };
 
 
-    const learn = (url: string, content: string, moduleName:string) => {
+    const learn = (url: string, content: string, moduleName: string) => {
         setContentState(url);
         setCurrentClickedModule(moduleName);
         setCurrentContentName(content);
@@ -296,13 +296,26 @@ const Journey = () => {
     const handleTimeUpdate = useCallback((videoId: string | null, time: number) => {
         if (videoId) {
             setVideoProgress(prev => {
-              const newProgress = { ...prev, [videoId]: time };
-              const newTotal = Object.values(newProgress).reduce((sum, curr) => sum + curr, 0);
-              setTotalWatchTime(newTotal);
-              return newProgress;
+                const newProgress = { ...prev, [videoId]: time };
+                const newTotal = Object.values(newProgress).reduce((sum, curr) => sum + curr, 0);
+                setTotalWatchTime(newTotal);
+                return newProgress;
             });
         }
-      }, []);
+    }, []);
+
+    const getCurrentVideoId = (url: string) => {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.searchParams.get('v') || urlObj.pathname.slice(1);
+        } catch (error) {
+            console.error('Invalid URL:', url);
+            return null;
+        }
+    };
+
+    const currentVideoId = getCurrentVideoId(contentState);
+    const currentVideoProgress = currentVideoId ? videoProgress[currentVideoId] || 0 : 0;
 
     const renderModules = (module: Module) => (
         <div key={module.moduleName} id={module.moduleName} className="flex flex-col items-center relative pathway">
@@ -371,7 +384,6 @@ const Journey = () => {
     useEffect(() => {
         const value = Math.round((totalWatchTime / totalLength) * 100);
         setProgressValue(value)
-        console.log(progressValue);
     }, [totalWatchTime]);
 
 
@@ -407,14 +419,14 @@ const Journey = () => {
                     </header>}
                     {learnState && <div className="glass shadow-xl rounded-2xl w-fill my-6 mx-4 relative h-full">
                         <div className="flex flex-col justify-center items-center h-full overflow-hidden w-full">
-                            <YouTubeEmbed videoUrl={contentState} onTimeUpdate={handleTimeUpdate} />
+                            <YouTubeEmbed videoUrl={contentState} onTimeUpdate={handleTimeUpdate} initialWatchTime={currentVideoProgress} />
                         </div>
                     </div>}
                     {learnState && <footer className="bg-zinc-800 p-4">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-blue-600 h-2.5 rounded-full w-1/3" style={{ width: `${progressValue ? progressValue: 0}%` }}></div>
+                            <div className="bg-blue-600 h-2.5 rounded-full w-1/3" style={{ width: `${progressValue ? progressValue : 0}%` }}></div>
                         </div>
-                        <p className="text-sm text-white mt-2">Progress: {progressValue ? progressValue: 0} %</p>
+                        <p className="text-sm text-white mt-2">Progress: {progressValue ? progressValue : 0} %</p>
                     </footer>}
                 </div>
             </div>

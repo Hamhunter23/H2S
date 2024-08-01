@@ -24,15 +24,18 @@ const useYouTubeAPI = () => {
 interface YouTubeEmbedProps {
     videoUrl: string;
     onTimeUpdate?: (videoId: string | null, time: number) => void;
+    initialWatchTime?: number;
 }
 
-const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoUrl, onTimeUpdate }) => {
+const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoUrl, onTimeUpdate, initialWatchTime = 0 }) => {
     const playerRef = useRef<HTMLDivElement>(null);
     const playerInstanceRef = useRef<YT.Player | null>(null);
     const intervalRef = useRef<number | null>(null);
-    const [watchedTime, setWatchedTime] = useState(0);
+    const [watchedTime, setWatchedTime] = useState(initialWatchTime);
     const apiReady = useYouTubeAPI();
     const currentVideoIdRef = useRef<string | null>(null);
+    const initialSeekPerformedRef = useRef<boolean>(false);
+    const lastKnownTimeRef = useRef<number>(initialWatchTime);
 
     const getVideoId = useCallback((url: string) => {
         try {
@@ -54,34 +57,50 @@ const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoUrl, onTimeUpdate }) =
     const onPlayerStateChange = useCallback((event: YT.OnStateChangeEvent) => {
         const videoId = currentVideoIdRef.current;
         if (event.data === (window as any).YT.PlayerState.PLAYING) {
+            if (!initialSeekPerformedRef.current) {
+                event.target.seekTo(lastKnownTimeRef.current, true);
+                initialSeekPerformedRef.current = true;
+            }
             clearInterval();
             intervalRef.current = window.setInterval(() => {
                 const currentTime = event.target.getCurrentTime();
-                setWatchedTime(currentTime);
-                if (videoId) {
-                    onTimeUpdate?.(videoId, currentTime);
+                if (currentTime < lastKnownTimeRef.current) {
+                    event.target.seekTo(lastKnownTimeRef.current, true);
+                } else {
+                    lastKnownTimeRef.current = currentTime;
+                    setWatchedTime(currentTime);
+                    if (videoId) {
+                        onTimeUpdate?.(videoId, currentTime);
+                    }
                 }
             }, 1000);
         } else if (event.data === (window as any).YT.PlayerState.PAUSED || event.data === (window as any).YT.PlayerState.ENDED) {
             clearInterval();
+            lastKnownTimeRef.current = event.target.getCurrentTime();
         }
     }, [clearInterval, onTimeUpdate]);
 
     const initializePlayer = useCallback(() => {
         const videoId = getVideoId(videoUrl);
+        if (!videoId || videoId === currentVideoIdRef.current) return;
+
         currentVideoIdRef.current = videoId;
-        
-        if (!videoId) return;
+        initialSeekPerformedRef.current = false;
+        lastKnownTimeRef.current = initialWatchTime;
     
         if (apiReady && playerRef.current) {
             if (playerInstanceRef.current) {
-                playerInstanceRef.current.cueVideoById(videoId);
+                playerInstanceRef.current.loadVideoById({
+                    videoId: videoId,
+                    startSeconds: lastKnownTimeRef.current
+                });
             } else {
                 playerInstanceRef.current = new (window as any).YT.Player(playerRef.current, {
                     videoId: videoId,
                     playerVars: {
                         autoplay: 0,
                         controls: 1,
+                        start: Math.floor(lastKnownTimeRef.current)
                     },
                     events: {
                         'onReady': (event: YT.PlayerEvent) => {
@@ -92,7 +111,7 @@ const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({ videoUrl, onTimeUpdate }) =
                 });
             }
         }
-    }, [apiReady, videoUrl, onPlayerStateChange, getVideoId]);
+    }, [apiReady, videoUrl, onPlayerStateChange, getVideoId, initialWatchTime]);
 
     useEffect(() => {
         if (apiReady) {
