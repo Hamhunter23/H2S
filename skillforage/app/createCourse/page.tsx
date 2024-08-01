@@ -154,13 +154,13 @@ const LearningComponent: React.FC = () => {
       // Generate and download CSV using PapaParse
       const csv = Papa.unparse(relevantData, { header: true });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      // const link = document.createElement('a');
     
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', 'output.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // link.href = URL.createObjectURL(blob);
+      // link.setAttribute('download', 'output.csv');
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
     
       setResult(relevantData);
     } catch (err) {
