@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import connect from '../../../utils/db';
+import CsvData from '../../models/CsvData';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,16 +9,14 @@ export async function POST(req: NextRequest) {
     if (!fileName || !csvData) {
       return NextResponse.json({ error: 'fileName and csvData are required' }, { status: 400 });
     }
+    await connect();
+    await CsvData.findOneAndUpdate(
+      { fileName: fileName },
+      { content: csvData },
+      { upsert: true, new: true }
+    );
 
-    if (fileName.includes('..')) {
-      return NextResponse.json({ error: 'Invalid fileName' }, { status: 400 });
-    }
-
-    const filePath = path.join(process.cwd(), 'public', fileName);
-
-    fs.writeFileSync(filePath, csvData);
-
-    return NextResponse.json({ message: 'File saved successfully' }, { status: 200 });
+    return NextResponse.json({ message: 'CSV output saved successfully' }, { status: 200 });
   } catch (error) {
     console.error('Error saving file:', error);
     return NextResponse.json({ error: 'Error saving file' }, { status: 500 });
