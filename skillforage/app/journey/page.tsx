@@ -397,24 +397,24 @@ const Journey = () => {
                         {renderedModules.toArray().map(renderModules)}
                     </div>
                 </div>
-                <div className={`flex flex-col h-screen bg-gray-300 learn-board ${learnState ? "move" : ""}`}>
-                    {learnState && <header className="bg-white p-4">
-                        <span className="text-black float-right text-3xl font-bold hover:text-red-700 hover:no-underline hover:cursor-pointer focus:text-red-700 focus:no-underline focus:cursor-pointer closeLearnBoard">
+                <div className={`flex flex-col h-screen bg-zinc-600 learn-board ${learnState ? "move" : ""}`}>
+                    {learnState && <header className="bg-zinc-800 p-4">
+                        <span className="text-white float-right text-4xl font-bold hover:text-red-700 hover:no-underline hover:cursor-pointer focus:text-red-700 focus:no-underline focus:cursor-pointer closeLearnBoard">
                             &times;
                         </span>
-                        <h1 className="text-2xl font-bold text-gray-800">{currentContentName}</h1>
-                        <p className="text-sm text-gray-600">{currentClickedModule} &gt; {currentContentName}</p>
+                        <h1 className="text-2xl font-bold text-white">{currentContentName}</h1>
+                        <p className="text-sm text-white">{currentClickedModule} &gt; {currentContentName}</p>
                     </header>}
-                    {learnState && <div className="bg-white shadow-xl rounded-2xl w-fill my-6 mx-4 relative h-full">
+                    {learnState && <div className="glass shadow-xl rounded-2xl w-fill my-6 mx-4 relative h-full">
                         <div className="flex flex-col justify-center items-center h-full overflow-hidden w-full">
                             <YouTubeEmbed videoUrl={contentState} onTimeUpdate={handleTimeUpdate} />
                         </div>
                     </div>}
-                    {learnState && <footer className="bg-white p-4">
+                    {learnState && <footer className="bg-zinc-800 p-4">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div className="bg-blue-600 h-2.5 rounded-full w-1/3" style={{ width: `${progressValue ? progressValue: 0}%` }}></div>
                         </div>
-                        <p className="text-sm text-gray-600 mt-2">Progress: {progressValue ? progressValue: 0} %</p>
+                        <p className="text-sm text-white mt-2">Progress: {progressValue ? progressValue: 0} %</p>
                     </footer>}
                 </div>
             </div>
